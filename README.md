@@ -6,7 +6,7 @@ File Description:
 
 AnalyzeAIA.py: temporary test script, not useful
 
-constant.py: save constant, should not safe it like this?
+constant.py: save constant, should not save it like this?
 
 imagePlot.py: draw image functions
 
