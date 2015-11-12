@@ -1,5 +1,6 @@
 import numpy as np
 
+# transfer pixel to distance: divided by 2 because the image is magnified before the camara
 pixelToDistance = 6.75E-6
 
 mNuc = 1.66E-27

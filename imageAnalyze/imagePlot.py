@@ -2,6 +2,8 @@ from pylab import *
 
 import numpy as np
 
+# data is a list of matrix, caption is a same lenght list to descibe the image
+# it can be original image or any new fitted images
 def atomImagePlot(data, caption):
     l = len(data)
     fig = figure(figsize=(15, 8))
@@ -17,6 +19,10 @@ def atomImagePlot(data, caption):
     #fig.colorbar()
     #colorbar(orientation='horizontal')
     show()
+
+
+# plot atom number
+# data1, data2 should be length of n
 
 def atomNumberPlot(n, data1, data2):
     x = range(n)

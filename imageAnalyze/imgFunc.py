@@ -7,10 +7,11 @@ from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 from mpmath import mp
 
+# list square, for fitting
 def square(list):
     return map(lambda x: x ** 2, list)
 
-
+# read data, changed to absorption image
 def readData(path):
     #Some option for setting path
 
@@ -102,6 +103,7 @@ def twoDGaussianFit(data):
     print [[x0,y0],[sigmaX,sigmaY],A,offset]
     return [[x0,y0],[sigmaX,sigmaY],A,offset]
     
+# condensate fit
 def twoDParbolicFit(data):
     """parabolic fit the function z = Amp * max(0, 1 - a*(x-x0)^2 - b*(y-y0)^2) +offset). 
     Since we only need center and width, this function returns center, width, amplitude and offset.
@@ -163,6 +165,8 @@ def twoDParbolicFit(data):
     
     return [[x0, y0], [widthX, widthY], Amp, offset]
 
+
+# partly condensate fit
 def partlyCondensateFit(data):
 
     def oneDPartlyCondensate(x, centerX, AmpP, a, sDevX, AmpG, offset):
@@ -230,6 +234,91 @@ def partlyCondensateFit(data):
 
     return [[x0,y0], [widthX, widthY], [sigmaX,sigmaY], AmpP, AmpG, offset]
 
+# for fermionic fit
+def f(x):
+    # if x == 0:
+    #     return 0
+    # if x < -1:
+    #     return 0
+    return (1+x)/x * np.log(1+x)
+
+# fermionic fit
+def fermionFit(data):
+   
+
+    def oneDPolylog(x, centerX, Rx, Amp , q, yOffset):
+        print (centerX, Rx, Amp, q)
+        temp = np.exp(q)
+        # if temp == 0:
+        print temp
+        # if temp > 1:
+        #     temp = 1
+            # return Amp* np.exp(-(( x - centerX ) **2)**2/(Rx**2) ) + yOffset
+        # polylogarray = np.frompyfunc(mp.polylog, 2, 1)
+        d0 = -np.exp(q-(( x - centerX ) **2)/(Rx**2) * f(temp))
+        d1 = np.zeros((len(x), 1))
+        for i in range(len(x)):
+            # # print d0[i]
+            # if d0[i] > 1:
+            #     # return Amp* np.exp(-(( x - centerX ) **2)**2/(Rx**2) ) + yOffset
+            #     d1[i] = 1
+            # elif d0[i] < -1:
+            #     # return Amp* np.exp(-(( x - centerX ) **2)**2/(Rx**2) ) + yOffset
+            #     d1[i] = -1
+            # else:
+                # print d0[i]
+            d1[i] = mp.polylog(2, d0[i]).real
+
+        # d1 = polylogarray(2.5, d0)
+        d3 = np.array([float(i) for i in d1])
+        d2 = float(mp.polylog(2, -temp).real)
+        out = Amp*d3/d2 + yOffset
+        fout = [float(i) for i in out]
+        
+        
+        return fout
+
+        
+        
+    ### Mask out only the area of interest then integrate the data long each axis
+
+
+    xSlice = np.sum(data,0)    
+    ySlice = np.sum(data,1)
+        
+    ### Initial guesses for 1d fits
+    xOff = np.nanmin(xSlice)
+    AmpX = np.nanmax(xSlice)-xOff
+    x0 = np.argmax(xSlice)
+    
+    yOff = np.nanmin(ySlice)
+    AmpY = np.nanmax(ySlice)-yOff
+    y0 = np.argmax(ySlice)
+    # sigmaX = sXguess
+    # sigmaY = sYguess
+    sigmaX = 100
+    sigmaY = 20
+    q0 = 4
+
+            
+    ### 1d fits
+    xVals, yCovar = curve_fit(oneDPolylog,range(len(xSlice)),xSlice,p0=(x0,sigmaX,AmpX, q0 ,xOff))
+    yVals, yCovar = curve_fit(oneDPolylog,range(len(ySlice)),ySlice,p0=(y0,sigmaY,AmpY, q0 ,yOff))
+    
+    x0 = float(xVals[0])
+    RX = float(xVals[1])
+
+    y0 = float(yVals[0])
+    RY = float(yVals[1])
+    
+    qx=float(xVals[3])
+    qy=float(yVals[3])
+    offset = float(0.5*(xVals[4]/(np.shape(data)[1]) + yVals[4]/(np.shape(data)[0])))
+    A = np.array(data).max()
+    
+    print [[x0,y0],[RX,RY],A,[qx, qy],offset]
+    return [[x0,y0],[RX,RY],A,[qx, qy],offset]
+    
 ### extract static data #####
 
 def temperatureSingleGaussianFit(ToF, gSigmaX, gSigmaY, OmegaAxial, OmegaRadial, atom):
@@ -247,11 +336,12 @@ def temperatureSingleGaussianFit(ToF, gSigmaX, gSigmaY, OmegaAxial, OmegaRadial,
     # deltaTemp = 0.5*abs(Tempx - Tempy)
     return [Tempx, Tempy]
 
-
+# single shot -> trap frequency radial
 def trapFrequencyRadial(ToF, rho, rho0):
     freq = (sqrt((rho/rho0)**2 - 1))/ToF
     return freq
 
+# single shot -> trap frequency Axial
 def trapFrequencyAxial(ToF, z, rho0, omegaRadial):
     tau = ToF * omegaRadial
     temp = tau * atan(tau) - log(sqrt(1+ tau**2))
@@ -262,7 +352,7 @@ def trapFrequencyAxial(ToF, z, rho0, omegaRadial):
 
     return e*omegaRadial
     
-
+# single shot -> chamical potential
 def chemicalPotential(ToF, omegaRadial, rho0):
     m = mLi
     mu = 0.5 * m * ((omegaRadial**2/(1+(omegaRadial**2) * (ToF**2))) * rho0**2)
@@ -273,10 +363,12 @@ def chemicalPotential(ToF, omegaRadial, rho0):
 #    omegaBar = omegaRadial**(2/3) * omegaAxial ** (1/3)
 #    return sqrt(hbar/(omegaBar*m))
     
+# used to get atom number    
 def effectiveInteraction(a):
     m = mLi
     return 4*np.pi*(hbar**2)*a/m
     
+# get atom number from chemical potential
 def atomNumberFit(mu, omegaRadial, omegaAxial, U0):
     m= mLi
     omegaBar = (omegaRadial**2 * omegaAxial) ** (1./3.)
@@ -289,7 +381,9 @@ def atomNumberFit(mu, omegaRadial, omegaAxial, U0):
         
     
 
+###### multiple shots functions ##########
 
+#fit temperature from thermal gas
 def fitTemperature(arr1, arr2, arr3, arr4, arr5):
     m = mLi
 
@@ -396,89 +490,7 @@ def Trap_frequency_fit_from_radius(rho_array, ToF_array):
     #plt.show()
     return [sqrt(rhoregress[0]/rhoregress[1]), sqrt(rhoregress[1])]
 
-def f(x):
-    # if x == 0:
-    #     return 0
-    # if x < -1:
-    #     return 0
-    return (1+x)/x * np.log(1+x)
-
-def fermionFit(data):
-   
-
-    def oneDPolylog(x, centerX, Rx, Amp , q, yOffset):
-        print (centerX, Rx, Amp, q)
-        temp = np.exp(q)
-        # if temp == 0:
-        print temp
-        # if temp > 1:
-        #     temp = 1
-            # return Amp* np.exp(-(( x - centerX ) **2)**2/(Rx**2) ) + yOffset
-        # polylogarray = np.frompyfunc(mp.polylog, 2, 1)
-        d0 = -np.exp(q-(( x - centerX ) **2)/(Rx**2) * f(temp))
-        d1 = np.zeros((len(x), 1))
-        for i in range(len(x)):
-            # # print d0[i]
-            # if d0[i] > 1:
-            #     # return Amp* np.exp(-(( x - centerX ) **2)**2/(Rx**2) ) + yOffset
-            #     d1[i] = 1
-            # elif d0[i] < -1:
-            #     # return Amp* np.exp(-(( x - centerX ) **2)**2/(Rx**2) ) + yOffset
-            #     d1[i] = -1
-            # else:
-                # print d0[i]
-            d1[i] = mp.polylog(2, d0[i]).real
-
-        # d1 = polylogarray(2.5, d0)
-        d3 = np.array([float(i) for i in d1])
-        d2 = float(mp.polylog(2, -temp).real)
-        out = Amp*d3/d2 + yOffset
-        fout = [float(i) for i in out]
-        
-        
-        return fout
-
-        
-        
-    ### Mask out only the area of interest then integrate the data long each axis
-
-
-    xSlice = np.sum(data,0)    
-    ySlice = np.sum(data,1)
-        
-    ### Initial guesses for 1d fits
-    xOff = np.nanmin(xSlice)
-    AmpX = np.nanmax(xSlice)-xOff
-    x0 = np.argmax(xSlice)
-    
-    yOff = np.nanmin(ySlice)
-    AmpY = np.nanmax(ySlice)-yOff
-    y0 = np.argmax(ySlice)
-    # sigmaX = sXguess
-    # sigmaY = sYguess
-    sigmaX = 100
-    sigmaY = 20
-    q0 = 4
-
-            
-    ### 1d fits
-    xVals, yCovar = curve_fit(oneDPolylog,range(len(xSlice)),xSlice,p0=(x0,sigmaX,AmpX, q0 ,xOff))
-    yVals, yCovar = curve_fit(oneDPolylog,range(len(ySlice)),ySlice,p0=(y0,sigmaY,AmpY, q0 ,yOff))
-    
-    x0 = float(xVals[0])
-    RX = float(xVals[1])
-
-    y0 = float(yVals[0])
-    RY = float(yVals[1])
-    
-    qx=float(xVals[3])
-    qy=float(yVals[3])
-    offset = float(0.5*(xVals[4]/(np.shape(data)[1]) + yVals[4]/(np.shape(data)[0])))
-    A = np.array(data).max()
-    
-    print [[x0,y0],[RX,RY],A,[qx, qy],offset]
-    return [[x0,y0],[RX,RY],A,[qx, qy],offset]
-    
+# multiple fit for fermion
 def fermionTemperature(tof, omegaAxial, omegaRadial, rx, ry, qx, qy):
     m = mLi
 
@@ -494,6 +506,8 @@ def fermionTemperature(tof, omegaAxial, omegaRadial, rx, ry, qx, qy):
 
     return [Tx, Ty]
 
+
+# temperature divided by fermionic temperature
 def TOverTF(q):
     return (-6*mp.polylog(3, -np.exp(q)))**(-1./3.)
 
