@@ -30,10 +30,7 @@ temporary fit result, saved for further use.( to do multiple image fit.)
 
 To-do:
 
-1. commend everything
 
-2. fix bugs for windows, make it work on lab computer
+1. fix bugs for partlyBEC
 
-3. fix bugs for partlyBEC
-
-
+2. connect to cicero
