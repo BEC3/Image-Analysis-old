@@ -24,7 +24,7 @@ test data
 
 /data.txt
 
-temporary fit result, saved for further use. readed to do multiple image fit.
+temporary fit result, saved for further use.( to do multiple image fit.)
 
 -----------------------
 
