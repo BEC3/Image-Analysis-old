@@ -186,7 +186,7 @@ class ImageUI(wx.Frame):
  #####################################################    
 
     def chooseFile(self, e):
-        app = wx.App(None)
+        
         style = wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
         dialog = wx.FileDialog(None, 'Open', '', style=style)
         if dialog.ShowModal() == wx.ID_OK:
