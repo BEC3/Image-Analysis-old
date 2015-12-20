@@ -101,7 +101,7 @@ def twoDGaussianFit(data):
 #        return Amp*np.exp(-0.5*((x-centerX)/sDevX)^2)+yOffset
     offset = 0.5*(xVals[3]/(np.shape(data)[1]) + yVals[3]/(np.shape(data)[0]))
     A = 0.5 * ( xVals[2]/(sqrt(2.0*np.pi)*sigmaY) + yVals[2]/(sqrt(2.0*np.pi)*sigmaX) ) 
-    print [[x0,y0],[sigmaX,sigmaY],A,offset]
+    
     return [[x0,y0],[sigmaX,sigmaY],A,offset]
     
 # condensate fit
@@ -217,9 +217,7 @@ def partlyCondensateFit(data):
     # AmpPY = 4./3. * AmpGY/sqrt(aX)
     AmpPX = AmpGX
     AmpPY = AmpGY
-    print "Initial guess"
-    print [lengthX, lengthY]
-    print [AmpPX, AmpPY]
+
             
     ### 1d fits
     xVals, yCovar = curve_fit(oneDPartlyCondensate,range(len(xSlice)),xSlice,p0=(x0, AmpPX/2, aX, sigmaX, AmpGX/2, xOff))
@@ -236,9 +234,7 @@ def partlyCondensateFit(data):
     AmpP = sqrt(np.maximum(xVals[1], 0) * np.maximum(yVals[1], 0) * 9./16. * sqrt(xVals[2] * yVals[2]) )
     AmpG = 0.5 * ( np.maximum(xVals[4], 0)/(sqrt(2.0*np.pi)*sigmaY) + np.maximum(yVals[4], 0)/(sqrt(2.0*np.pi)*sigmaX) ) 
     offset = 0.5 * (xVals[5]/(np.shape(data)[1]) + yVals[5]/(np.shape(data)[0]))
-    print [sigmaX, sigmaY]
-    print [widthX, widthY]
-    print [AmpP, AmpG, offset]
+
     return [[x0,y0], [widthX, widthY], [sigmaX,sigmaY], AmpP, AmpG, offset]
 
 # for fermionic fit
@@ -254,7 +250,7 @@ def fermionFit(data):
 
     def oneDPolylog(x, centerX, Rx, Amp , q, yOffset):
         x = np.array(x)
-        print (centerX, Rx, Amp, q)
+        
         temp = np.exp(q)
         numerator = polylog5half(-np.exp(q - (x-centerX)**2/Rx**2 * f(np.exp(q))))
         denuminator = polylog5half(-np.exp(q))
@@ -300,7 +296,7 @@ def fermionFit(data):
     offset = float(0.5*(xVals[4]/(np.shape(data)[1]) + yVals[4]/(np.shape(data)[0])))
     A = np.array(data).max()
     
-    print [[x0,y0],[RX,RY],A,[qx, qy],offset]
+   
     return [[x0,y0],[RX,RY],A,[qx, qy],offset]
     
 ### extract static data #####
@@ -381,8 +377,7 @@ def fitTemperature(arr1, arr2, arr3, arr4, arr5):
     for i in range(len(arr1)):
         templist1[i] = RX[i]**2/f(np.exp(qX[i]))
         templist2[i] = RY[i]**2/f(np.exp(qY[i]))
-    print timeOfFlight
-    print templist1
+
     linregressX = stats.linregress(templist1, np.array(square(timeOfFlight)))
     # linregressX = stats.linregress(np.array(square(timeOfFlight)), templist1)
     slopeX = linregressX[0]
@@ -422,12 +417,12 @@ def fitTrapFrequency(arr1, arr2, arr3, arr4, arr5):
 
     linregressX = stats.linregress(templist1, np.array(square(timeOfFlight)))
     bX = linregressX[1]
-    print bX
+    
     omegaX = np.sqrt(1/bX)
 
     linregressY = stats.linregress(templist2, np.array(square(timeOfFlight)))
     bY = linregressY[1]
-    print bY
+    
     omegaY = np.sqrt(1/bY)
 
     return [omegaX, omegaY]
