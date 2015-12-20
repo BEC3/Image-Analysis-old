@@ -55,7 +55,7 @@ class ImageUI(wx.Frame):
         # self.imageFolderPath = wx.TextCtrl(panel, pos=(20,75), size=(200,25), value="../BEC_TOF_images/")
         self.imageFolderPath = wx.TextCtrl(panel, pos=(20,75), size=(200,25), value="../data/fermion2/")
         wx.StaticText(panel, pos=(20,110), size=(100, 25), label='Image File Name')
-        chooseFileButton = wx.Button(panel, pos=(20,130), size=(200,25), label = 'Choose File')
+        chooseFileButton = wx.Button(panel, pos=(20,135), size=(200,25), label = 'Choose File')
         chooseFileButton.Bind(wx.EVT_BUTTON, self.chooseFile)
         
         # self.imageFileName = wx.TextCtrl(panel, pos=(20,130), size=(200,25))
@@ -65,7 +65,7 @@ class ImageUI(wx.Frame):
         
         showImgButton = wx.Button(panel, pos=(10, 200), size = (90, 40), label = 'Fit Image')
         showImgButton.Bind(wx.EVT_BUTTON, self.showImg)
-        autoButton = wx.Button(panel, pos=(10,520), size=(250,120), label = 'Run automatically')
+        autoButton = wx.Button(panel, pos=(10,560), size=(250,60), label = 'Run automatically')
         autoButton.Bind(wx.EVT_BUTTON, self.startAutoRun)
         autoButton.SetFont(font)
 
@@ -103,10 +103,10 @@ class ImageUI(wx.Frame):
         wx.StaticText(panel, pos=(300,130) , size=(200, 30), label = 'Trapping Frequency')
         wx.StaticText(panel, pos=(320,160) , size=(50, 30), label = 'Axial')
         self.omegaAxial = wx.TextCtrl(panel, pos=(420,160) , size=(50, 30), value='200')
-        wx.StaticText(panel, pos=(470,160) , size=(30, 25), label = '*2pi Hz')
+        wx.StaticText(panel, pos=(470,160) , size=(60, 25), label = '*2pi Hz')
         wx.StaticText(panel, pos=(320,190) , size=(50, 30), label = 'Radial')
         self.omegaRadial = wx.TextCtrl(panel, pos=(420,190) , size=(50, 30), value='250')
-        wx.StaticText(panel, pos=(470,190) , size=(30, 25), label = '*2pi Hz')
+        wx.StaticText(panel, pos=(470,190) , size=(60, 25), label = '*2pi Hz')
         wx.StaticText(panel, pos=(300,230) , size=(50, 25), label = 'AOI: (x,y)->(x,y)')
         self.AOI1 = wx.TextCtrl(panel, pos=(410,230) , size=(30, 25), value='0')
         self.AOI2 = wx.TextCtrl(panel, pos=(440,230) , size=(30, 25), value='0')
@@ -129,9 +129,9 @@ class ImageUI(wx.Frame):
         #temperature
         wx.StaticText(panel, pos=(300,420), size=(100, 25), label='Temperature')
         self.gTemperature = wx.TextCtrl(panel, pos=(300,450), size=(100, 25), value='', style=wx.TE_READONLY)
-        wx.StaticText(panel, pos=(400,450), size=(30, 25), label='nK (from Gaussian fit)')
+        wx.StaticText(panel, pos=(400,450), size=(100, 25), label='nK (from Gaussian fit)')
         self.fTemperature = wx.TextCtrl(panel, pos=(300,480), size=(100, 25), value='', style=wx.TE_READONLY)
-        wx.StaticText(panel, pos=(400,480), size=(30, 25), label='nK (from Fermion fit)')
+        wx.StaticText(panel, pos=(400,480), size=(100, 25), label='nK (from Fermion fit)')
         wx.StaticText(panel, pos=(300,510), size=(120, 25), label='T/T_F')
         self.tOverTF = wx.TextCtrl(panel, pos=(400,510), size=(150, 25), value='', style=wx.TE_READONLY)
 
@@ -165,10 +165,10 @@ class ImageUI(wx.Frame):
         fitTrapFreqButton.Bind(wx.EVT_BUTTON, self.fitTrapFreq)
         wx.StaticText(panel, pos=(910,260) , size=(50, 30), label = 'Axial')
         self.fitTrapAxialFreqText = wx.TextCtrl(panel, pos=(990,260), size=(50, 25), style=wx.TE_READONLY)
-        wx.StaticText(panel, pos=(1050,260) , size=(30, 25), label = '*2pi Hz')
+        wx.StaticText(panel, pos=(1050,260) , size=(60, 25), label = '*2pi Hz')
         wx.StaticText(panel, pos=(910,290) , size=(50, 30), label = 'Radial')
         self.fitTrapRadialFreqText = wx.TextCtrl(panel, pos=(990,290), size=(50, 25), style=wx.TE_READONLY)
-        wx.StaticText(panel, pos=(1050,290) , size=(30, 25), label = '*2pi Hz')
+        wx.StaticText(panel, pos=(1050,290) , size=(60, 25), label = '*2pi Hz')
         #
 
 ######## draw figures ############
