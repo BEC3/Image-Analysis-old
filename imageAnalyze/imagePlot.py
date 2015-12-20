@@ -11,7 +11,7 @@ def atomImagePlot(data, caption):
     for r in range(len(data)):
         positionString = '1' + str(l) + str(r+1)
         subplot(positionString)
-        imshow(data[r].real, cmap='jet', aspect='auto', vmin=-1, vmax=5)
+        imshow(data[r], cmap='jet', aspect='auto', vmin=-1, vmax=5)
         grid(True, color='white')
         title(caption[r])
 

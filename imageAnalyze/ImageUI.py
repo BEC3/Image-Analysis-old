@@ -53,7 +53,7 @@ class ImageUI(wx.Frame):
         block1.SetFont(font)
         wx.StaticText(panel, pos=(20,55), size=(100, 25), label='Image Folder Path')
         # self.imageFolderPath = wx.TextCtrl(panel, pos=(20,75), size=(200,25), value="../BEC_TOF_images/")
-        self.imageFolderPath = wx.TextCtrl(panel, pos=(20,75), size=(200,25), value="../data/")
+        self.imageFolderPath = wx.TextCtrl(panel, pos=(20,75), size=(200,25), value="../data/fermion2/")
         wx.StaticText(panel, pos=(20,110), size=(100, 25), label='Image File Name')
         chooseFileButton = wx.Button(panel, pos=(20,130), size=(200,25), label = 'Choose File')
         chooseFileButton.Bind(wx.EVT_BUTTON, self.chooseFile)
@@ -246,36 +246,36 @@ class ImageUI(wx.Frame):
         self.AOIImage = atomImage[yTop:yBottom,xLeft:xRight]
         ## view fit result
 
-        self.gVals = twoDGaussianFit(self.AOIImage)
         print "Gaussian Fit"
+        self.gVals = twoDGaussianFit(self.AOIImage)
         self.gVals[0][0] += xLeft
         self.gVals[0][1] += yTop
+        self.offset = self.gVals[3]
 
-        self.pVals = twoDParbolicFit(self.AOIImage)
-        print "parabolic Fit"
-        self.pVals[0][0] += xLeft
-        self.pVals[0][1] += yTop
-        self.offset = self.pVals[3]
+        # print "parabolic Fit"
+        # self.pVals = twoDParbolicFit(self.AOIImage)
+        # self.pVals[0][0] += xLeft
+        # self.pVals[0][1] += yTop
+        # self.offset = self.pVals[3]
 
+        # print "partly Condensate"
         # self.doubleVals = partlyCondensateFit(self.AOIImage)
         # self.doubleVals[0][0] += xLeft
         # self.doubleVals[0][1] += yTop
         # self.doubleoffset = self.doubleVals[5]
 
-
-        self.fVals = fermionFit(self.AOIImage)
         print "fermion Fit"
+        self.fVals = fermionFit(self.AOIImage)
         self.fVals[0][0] += xLeft
         self.fVals[0][1] += yTop
         self.foffset = self.fVals[4]
         q = 0.5* (self.fVals[3][0] + self.fVals[3][1])
-        temp = np.exp(q)
 
 
         self.gCenter.SetValue('( %.0f'%self.gVals[0][0] + ' , %.0f )'%self.gVals[0][1])
         self.gSigma.SetValue('( %.0f'%self.gVals[1][0] + ' , %.0f )'%self.gVals[1][1])
-        self.pCenter.SetValue('( %.0f'%self.pVals[0][0] + ' , %.0f )'%self.pVals[0][1])
-        self.pWidth.SetValue('( %.0f'%(self.pVals[1][0]) + ' , %.0f )'%(self.pVals[1][1]))
+        # self.pCenter.SetValue('( %.0f'%self.pVals[0][0] + ' , %.0f )'%self.pVals[0][1])
+        # self.pWidth.SetValue('( %.0f'%(self.pVals[1][0]) + ' , %.0f )'%(self.pVals[1][1]))
         self.fWidth.SetValue('( %.0f'%(self.fVals[1][0]) + ' , %.0f )'%(self.fVals[1][1]))
         self.fq.SetValue('( %.2f'%(self.fVals[3][0]) + ' , ' + '%.2f )'%(self.fVals[3][1]))
 
@@ -284,31 +284,37 @@ class ImageUI(wx.Frame):
         y = np.arange(yTop, yBottom, 1)
         X,Y = np.meshgrid(x, y)
 
+        print "redraw gaussian image"
         gaussianFitImage = self.gVals[2]*np.exp(-0.5*(((X-self.gVals[0][0])/self.gVals[1][0])**2+((Y-self.gVals[0][1])/self.gVals[1][1])**2))+self.gVals[3]
-        parabolicFitImage = np.maximum(np.zeros((1024,1024)), self.pVals[2] * (1 - ((X - self.pVals[0][0]) / self.pVals[1][0]) ** 2 - ((Y - self.pVals[0][1]) / self.pVals[1][1]) ** 2)  )+ self.pVals[3]
+        
+        # print "redraw parabolic image"
+        # parabolicFitImage = np.maximum(np.zeros((1024,1024)), \
+        # self.pVals[2] * (1 - ((X - self.pVals[0][0]) / self.pVals[1][0]) ** 2 - ((Y - self.pVals[0][1]) / self.pVals[1][1]) ** 2)  )+\
+        # self.pVals[3]
+
+        # print "redraw partly condensate image"
+        # partlyFitImage = self.doubleVals[4] * \
+        # np.exp(-0.5*(((X-self.doubleVals[0][0])/self.doubleVals[2][0])**2+((Y-self.doubleVals[0][1])/self.doubleVals[2][1])**2)) + \
+        # self.doubleVals[3] * \
+        # np.maximum(np.zeros((1024,1024)),  (1 - ((X - self.doubleVals[0][0]) / self.doubleVals[1][0]) ** 2 - ((Y - self.doubleVals[0][1]) / self.doubleVals[1][1])  ** 2 )  ) ** 2+ self.doubleoffset
 
 
+        print "redraw fermion image"
+        numerator_inside = - np.exp(q-((X-self.fVals[0][0])**2/self.fVals[1][0]**2+(Y-self.fVals[0][1])**2/self.fVals[1][1]**2)*f(np.exp(q)))
+        l = len(numerator_inside)
+        s = []
+        for i in range(l):
+            x = self.fVals[2] * polylog2(np.array(numerator_inside[i]))/polylog2(- np.exp(q))  + self.fVals[4]
+            s.append(list(x))
+        
+        fermionFitImage = s
+       
 
-        polylogarray = np.frompyfunc(mp.polylog, 2, 1)
-        d1 = polylogarray(2, -np.exp(q-((X-self.fVals[0][0])**2/self.fVals[1][0]**2 + (Y-self.fVals[0][1])**2/self.fVals[1][1]**2)*((1+temp)/temp)*np.log(1+temp)))
-        d3 = np.zeros((1024,1024))
-        for i in range(1024):
-            for j in range(1024):
-                d3[i][j] = float(d1[i][j])
         
 
-        d2 = float(mp.polylog(2, -temp))
-        fermionFitImage = self.fVals[2] * d3/d2  + self.fVals[4]
-        print fermionFitImage
-        
-
-
-        # partlyFitImage = self.doubleVals[4]*np.exp(-0.5*(((X-self.doubleVals[0][0])/self.doubleVals[2][0])**2+((Y-self.doubleVals[0][1])/self.doubleVals[2][1])**2)) + np.maximum(np.zeros((1024,1024)), self.doubleVals[3] * (1 - ((X - self.doubleVals[0][0]) / self.doubleVals[1][0]) ** 2 - ((Y - self.doubleVals[0][1]) / self.doubleVals[1][1]) ** 2)  ) + self.doubleoffset
-
-
-
-        atomImagePlot([atomImage, gaussianFitImage,parabolicFitImage], ['original image','gaussian fit','parabolic fit'] )
-        atomImagePlot([atomImage, fermionFitImage], ['original image', 'fermion fit'] )
+        # atomImagePlot([atomImage, gaussianFitImage,parabolicFitImage], ['original image','gaussian fit','parabolic fit'] )
+        print "plot images"
+        atomImagePlot([atomImage, gaussianFitImage, fermionFitImage], ['original image', 'gaussianFitImage', 'fermion fit'] )
         # atomImagePlot([atomImage, gaussianFitImage, parabolicFitImage, partlyFitImage], ['original image','gaussian fit','parabolic fit', 'partly BEC fit'] )
 
     def startAutoRun(self, e):
@@ -319,9 +325,9 @@ class ImageUI(wx.Frame):
     def autoRun(self, e):
         self.showImg(e)
         self.singleShoot(e)
-        self.saveResult(e)
+        # self.saveResult(e)
         self.recentAtomNumberInt.AppendText(self.atomNumberInt.GetValue() + '\n')
-        self.recentAtomNumberChem.AppendText(self.atomNumberChem.GetValue() + '\n')
+        # self.recentAtomNumberChem.AppendText(self.atomNumberChem.GetValue() + '\n')
 
 
 
@@ -331,13 +337,13 @@ class ImageUI(wx.Frame):
         omegaAxial = float(self.omegaAxial.GetValue())
         omegaRadial = float(self.omegaRadial.GetValue())
 
-        mu = chemicalPotential(ToF, omegaRadial * 2 * np.pi, self.pVals[1][1]* pixelToDistance)
+        # mu = chemicalPotential(ToF, omegaRadial * 2 * np.pi, self.pVals[1][1]* pixelToDistance)
         #print 'mu%f'%(mu*1E30)
-        U0 = effectiveInteraction(scatteringLength)
+        # U0 = effectiveInteraction(scatteringLength)
         #print 'U0%f'%(U0*1E50)
-        N_chem = atomNumberFit(mu, omegaRadial * 2 * np.pi, omegaAxial * 2 * np.pi, U0)
+        # N_chem = atomNumberFit(mu, omegaRadial * 2 * np.pi, omegaAxial * 2 * np.pi, U0)
         
-        self.atomNumberChem.SetValue(str("%.0f" % N_chem))
+        # self.atomNumberChem.SetValue(str("%.0f" % N_chem))
 
         N_int = atomNumber(self.AOIImage, self.offset)
         self.atomNumberInt.SetValue(str("%.0f" % N_int))

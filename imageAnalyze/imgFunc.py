@@ -6,6 +6,7 @@ from math import sqrt, log, atan
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 from mpmath import mp
+from polylog import *
 
 # list square, for fitting
 def square(list):
@@ -112,7 +113,7 @@ def twoDParbolicFit(data):
         #print  - Amp *  ((x-centerX)**2) + C
         #print offset
         #return - Amp *  ((x-centerX)**2) + C * offset
-        out = Amp *  np.maximum( (1 - a * (x - centerX)**2), 0)  ** 1.5+ offset
+        out = Amp *  np.maximum( (1 - a * (x - centerX)**2), 0)  ** 2+ offset
 
         return out
     #def oneDGaussian(x, centerX,sDevX,Amp,yOffset):
@@ -170,7 +171,7 @@ def twoDParbolicFit(data):
 def partlyCondensateFit(data):
 
     def oneDPartlyCondensate(x, centerX, AmpP, a, sDevX, AmpG, offset):
-        return np.maximum(AmpG, 0)*np.exp(-0.5*((x-centerX)/sDevX)**2) + np.maximum(AmpP, 0) *  np.maximum( (1 - a * (x - centerX)**2), 0)  ** 1.5+ offset
+        return np.maximum(AmpG, 0)*np.exp(-0.5*((x-centerX)/sDevX)**2) + np.maximum(AmpP, 0) *  np.maximum( (1 - a * (x - centerX)**2), 0)  ** 2.5+ offset
        
 
     xSlice = np.sum(data,0)    
@@ -212,9 +213,13 @@ def partlyCondensateFit(data):
     
     aX = 4./lengthX**2
     aY = 4./lengthY**2
-    AmpPX = 4./3. * AmpGX/sqrt(aY)
-    AmpPY = 4./3. * AmpGY/sqrt(aX)
-
+    # AmpPX = 4./3. * AmpGX/sqrt(aY)
+    # AmpPY = 4./3. * AmpGY/sqrt(aX)
+    AmpPX = AmpGX
+    AmpPY = AmpGY
+    print "Initial guess"
+    print [lengthX, lengthY]
+    print [AmpPX, AmpPY]
             
     ### 1d fits
     xVals, yCovar = curve_fit(oneDPartlyCondensate,range(len(xSlice)),xSlice,p0=(x0, AmpPX/2, aX, sigmaX, AmpGX/2, xOff))
@@ -231,7 +236,9 @@ def partlyCondensateFit(data):
     AmpP = sqrt(np.maximum(xVals[1], 0) * np.maximum(yVals[1], 0) * 9./16. * sqrt(xVals[2] * yVals[2]) )
     AmpG = 0.5 * ( np.maximum(xVals[4], 0)/(sqrt(2.0*np.pi)*sigmaY) + np.maximum(yVals[4], 0)/(sqrt(2.0*np.pi)*sigmaX) ) 
     offset = 0.5 * (xVals[5]/(np.shape(data)[1]) + yVals[5]/(np.shape(data)[0]))
-
+    print [sigmaX, sigmaY]
+    print [widthX, widthY]
+    print [AmpP, AmpG, offset]
     return [[x0,y0], [widthX, widthY], [sigmaX,sigmaY], AmpP, AmpG, offset]
 
 # for fermionic fit
@@ -244,39 +251,16 @@ def f(x):
 
 # fermionic fit
 def fermionFit(data):
-   
 
     def oneDPolylog(x, centerX, Rx, Amp , q, yOffset):
+        x = np.array(x)
         print (centerX, Rx, Amp, q)
         temp = np.exp(q)
-        # if temp == 0:
-        print temp
-        # if temp > 1:
-        #     temp = 1
-            # return Amp* np.exp(-(( x - centerX ) **2)**2/(Rx**2) ) + yOffset
-        # polylogarray = np.frompyfunc(mp.polylog, 2, 1)
-        d0 = -np.exp(q-(( x - centerX ) **2)/(Rx**2) * f(temp))
-        d1 = np.zeros((len(x), 1))
-        for i in range(len(x)):
-            # # print d0[i]
-            # if d0[i] > 1:
-            #     # return Amp* np.exp(-(( x - centerX ) **2)**2/(Rx**2) ) + yOffset
-            #     d1[i] = 1
-            # elif d0[i] < -1:
-            #     # return Amp* np.exp(-(( x - centerX ) **2)**2/(Rx**2) ) + yOffset
-            #     d1[i] = -1
-            # else:
-                # print d0[i]
-            d1[i] = mp.polylog(2, d0[i]).real
+        numerator = polylog5half(-np.exp(q - (x-centerX)**2/Rx**2 * f(np.exp(q))))
+        denuminator = polylog5half(-np.exp(q))
+        out = numerator/denuminator * Amp + yOffset
 
-        # d1 = polylogarray(2.5, d0)
-        d3 = np.array([float(i) for i in d1])
-        d2 = float(mp.polylog(2, -temp).real)
-        out = Amp*d3/d2 + yOffset
-        fout = [float(i) for i in out]
-        
-        
-        return fout
+        return out
 
         
         
@@ -296,8 +280,8 @@ def fermionFit(data):
     y0 = np.argmax(ySlice)
     # sigmaX = sXguess
     # sigmaY = sYguess
-    sigmaX = 100
-    sigmaY = 20
+    sigmaX = 40
+    sigmaY = 40
     q0 = 4
 
             
@@ -509,5 +493,5 @@ def fermionTemperature(tof, omegaAxial, omegaRadial, rx, ry, qx, qy):
 
 # temperature divided by fermionic temperature
 def TOverTF(q):
-    return (-6*mp.polylog(3, -np.exp(q)))**(-1./3.)
+    return (-6*polylog3(-np.exp(q)))**(-1./3.)
 
