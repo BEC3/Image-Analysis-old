@@ -14,6 +14,7 @@ import matplotlib.cm as cm
 from imagePlot import *
 from imgFunc import *
 from watchforchange import *
+from localPath import *
 
 
 class ImageUI(wx.Frame):
@@ -53,7 +54,7 @@ class ImageUI(wx.Frame):
         block1.SetFont(font)
         wx.StaticText(panel, pos=(20,55), size=(100, 25), label='Image Folder Path')
         # self.imageFolderPath = wx.TextCtrl(panel, pos=(20,75), size=(200,25), value="../BEC_TOF_images/")
-        self.imageFolderPath = wx.TextCtrl(panel, pos=(20,75), size=(200,25), value="../data/fermion2/")
+        self.imageFolderPath = wx.TextCtrl(panel, pos=(20,75), size=(200,25), value=LOCAL_PATH)
         wx.StaticText(panel, pos=(20,110), size=(100, 25), label='Image File Name')
         chooseFileButton = wx.Button(panel, pos=(20,135), size=(200,25), label = 'Choose File')
         chooseFileButton.Bind(wx.EVT_BUTTON, self.chooseFile)

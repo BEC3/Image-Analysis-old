@@ -1,0 +1,5 @@
+data/
+documents/
+imageAnalyze/*.pyc
+
+## imageAnalyze/localPath.py
