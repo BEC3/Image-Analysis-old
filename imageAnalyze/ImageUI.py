@@ -42,6 +42,9 @@ class ImageUI(wx.Frame):
         self.observer = Observer()
         self.observer.schedule(MyHandler(self.autoRun, self), path = self.imageFolderPath.GetValue())
 
+        self.fitMethodFermion.SetValue(True)
+        self.FermionFitChosen(e)
+
     def InitUI(self):
 
     	panel = wx.Panel(self)
@@ -63,8 +66,12 @@ class ImageUI(wx.Frame):
         self.filenameText = wx.TextCtrl(panel, pos=(20,170), size=(200, 25))
         #Fit Img button
         
-        
-        showImgButton = wx.Button(panel, pos=(10, 200), size = (90, 40), label = 'Fit Image')
+        self.fitMethodFermion = wx.RadioButton(panel, label="Fermion", pos=(10,200), size = (80,20))
+        self.fitMethodBoson = wx.RadioButton(panel, label="Boson", pos=(10,225), size=(80,20))
+        self.Bind(wx.EVT_RADIOBUTTON, self.FermionFitChosen, id=self.fitMethodFermion.GetId())
+        self.Bind(wx.EVT_RADIOBUTTON, self.BosonFitChosen, id=self.fitMethodBoson.GetId())
+
+        showImgButton = wx.Button(panel, pos=(140, 200), size = (90, 40), label = 'Fit Image')
         showImgButton.Bind(wx.EVT_BUTTON, self.showImg)
         autoButton = wx.Button(panel, pos=(10,560), size=(250,60), label = 'Run automatically')
         autoButton.Bind(wx.EVT_BUTTON, self.startAutoRun)
@@ -78,16 +85,18 @@ class ImageUI(wx.Frame):
         self.gCenter = wx.TextCtrl(panel, pos=(140,320), size=(100, 25), value='', style=wx.TE_READONLY)
         wx.StaticText(panel, pos=(20,350), size=(100, 25), label='Sigma is')
         self.gSigma = wx.TextCtrl(panel, pos=(140,350), size=(100, 25), value='', style=wx.TE_READONLY)
-        wx.StaticText(panel, pos=(20,380), size=(100, 25), label='Paraboic Fit')
-        wx.StaticText(panel, pos=(20,410), size=(100, 25), label='Center at')
+        
+        self.pLabel = wx.StaticText(panel, pos=(20,380), size=(100, 25), label='Paraboic Fit')
+        self.pText1 = wx.StaticText(panel, pos=(20,410), size=(100, 25), label='Center at')
         self.pCenter = wx.TextCtrl(panel, pos=(140,410), size=(100, 25), value='', style=wx.TE_READONLY)
-        wx.StaticText(panel, pos=(20,440), size=(100, 25), label='Half Width is')
+        self.pText2 = wx.StaticText(panel, pos=(20,440), size=(100, 25), label='Half Width is')
         self.pWidth = wx.TextCtrl(panel, pos=(140,440), size=(100, 25), value='', style=wx.TE_READONLY)
-        wx.StaticText(panel, pos=(20,470), size=(100, 25), label='Fermion Fit')
-        wx.StaticText(panel, pos=(20,500), size=(100, 25), label='(Rx, Ry)')
-        self.fWidth = wx.TextCtrl(panel, pos=(140,500), size=(100, 25), value='', style=wx.TE_READONLY)
-        wx.StaticText(panel, pos=(20,530), size=(150, 25), label='q(=mu*beta)')
-        self.fq = wx.TextCtrl(panel, pos=(140,530), size=(150, 25), value='', style=wx.TE_READONLY)
+        
+        self.fLabel = wx.StaticText(panel, pos=(20,380), size=(100, 25), label='Fermion Fit')
+        self.fText1 = wx.StaticText(panel, pos=(20,410), size=(100, 25), label='(Rx, Ry)')
+        self.fWidth = wx.TextCtrl(panel, pos=(140,410), size=(100, 25), value='', style=wx.TE_READONLY)
+        self.fText2 = wx.StaticText(panel, pos=(20,440), size=(150, 25), label='q(=mu*beta)')
+        self.fq = wx.TextCtrl(panel, pos=(140,440), size=(150, 25), value='', style=wx.TE_READONLY)
 
 
 ######### single shoot functions ############
@@ -132,8 +141,8 @@ class ImageUI(wx.Frame):
         self.gTemperature = wx.TextCtrl(panel, pos=(300,450), size=(100, 25), value='', style=wx.TE_READONLY)
         wx.StaticText(panel, pos=(400,450), size=(100, 25), label='nK (from Gaussian fit)')
         self.fTemperature = wx.TextCtrl(panel, pos=(300,480), size=(100, 25), value='', style=wx.TE_READONLY)
-        wx.StaticText(panel, pos=(400,480), size=(100, 25), label='nK (from Fermion fit)')
-        wx.StaticText(panel, pos=(300,510), size=(120, 25), label='T/T_F')
+        self.fTempLabel = wx.StaticText(panel, pos=(400,480), size=(100, 25), label='nK (from Fermion fit)')
+        self.tOverTFLabel = wx.StaticText(panel, pos=(300,510), size=(120, 25), label='T/T_F')
         self.tOverTF = wx.TextCtrl(panel, pos=(400,510), size=(150, 25), value='', style=wx.TE_READONLY)
 
 ######## save fitting result ##############
@@ -201,7 +210,44 @@ class ImageUI(wx.Frame):
     def test(self, e):
         print "Test for watchdog"
 
+    def FermionFitChosen(self, e):
+        print "Fermion Fit"
+        self.pLabel.Hide()
+        self.pText1.Hide()
+        self.pCenter.Hide()
+        self.pText2.Hide()
+        self.pWidth.Hide()
+        self.fLabel.Show()
+        self.fText1.Show()
+        self.fWidth.Show()
+        self.fText2.Show()
+        self.fq.Show()
+        self.fTempLabel.Show()
+        self.fTemperature.Show()
+        self.tOverTF.Show()
+        self.tOverTFLabel.Show()
+
+    def BosonFitChosen(self, e):
+
+        print "Boson Fit"
+        self.pLabel.Show()
+        self.pText1.Show()
+        self.pCenter.Show()
+        self.pText2.Show()
+        self.pWidth.Show()
+        self.fLabel.Hide()
+        self.fText1.Hide()
+        self.fWidth.Hide()
+        self.fText2.Hide()
+        self.fq.Hide()
+        self.fTempLabel.Hide()
+        self.fTemperature.Hide()
+        self.tOverTF.Hide()
+        self.tOverTFLabel.Hide()
+
     def showImg(self, e):
+
+        print "Begin to fit..."
 
         # Read Image
         path = self.imageFolderPath.GetValue()
@@ -253,34 +299,7 @@ class ImageUI(wx.Frame):
         self.gVals[0][1] += yTop
         self.offset = self.gVals[3]
 
-        # print "parabolic Fit"
-        # self.pVals = twoDParbolicFit(self.AOIImage)
-        # self.pVals[0][0] += xLeft
-        # self.pVals[0][1] += yTop
-        # self.offset = self.pVals[3]
-
-        # print "partly Condensate"
-        # self.doubleVals = partlyCondensateFit(self.AOIImage)
-        # self.doubleVals[0][0] += xLeft
-        # self.doubleVals[0][1] += yTop
-        # self.doubleoffset = self.doubleVals[5]
-
-        print "fermion Fit"
-        self.fVals = fermionFit(self.AOIImage)
-        self.fVals[0][0] += xLeft
-        self.fVals[0][1] += yTop
-        self.foffset = self.fVals[4]
-        q = 0.5* (self.fVals[3][0] + self.fVals[3][1])
-
-
-        self.gCenter.SetValue('( %.0f'%self.gVals[0][0] + ' , %.0f )'%self.gVals[0][1])
-        self.gSigma.SetValue('( %.0f'%self.gVals[1][0] + ' , %.0f )'%self.gVals[1][1])
-        # self.pCenter.SetValue('( %.0f'%self.pVals[0][0] + ' , %.0f )'%self.pVals[0][1])
-        # self.pWidth.SetValue('( %.0f'%(self.pVals[1][0]) + ' , %.0f )'%(self.pVals[1][1]))
-        self.fWidth.SetValue('( %.0f'%(self.fVals[1][0]) + ' , %.0f )'%(self.fVals[1][1]))
-        self.fq.SetValue('( %.2f'%(self.fVals[3][0]) + ' , ' + '%.2f )'%(self.fVals[3][1]))
-
-
+       
         x = np.arange(xLeft, xRight, 1)
         y = np.arange(yTop, yBottom, 1)
         X,Y = np.meshgrid(x, y)
@@ -288,35 +307,74 @@ class ImageUI(wx.Frame):
         print "redraw gaussian image"
         gaussianFitImage = self.gVals[2]*np.exp(-0.5*(((X-self.gVals[0][0])/self.gVals[1][0])**2+((Y-self.gVals[0][1])/self.gVals[1][1])**2))+self.gVals[3]
         
-        # print "redraw parabolic image"
-        # parabolicFitImage = np.maximum(np.zeros((1024,1024)), \
-        # self.pVals[2] * (1 - ((X - self.pVals[0][0]) / self.pVals[1][0]) ** 2 - ((Y - self.pVals[0][1]) / self.pVals[1][1]) ** 2)  )+\
-        # self.pVals[3]
-
-        # print "redraw partly condensate image"
-        # partlyFitImage = self.doubleVals[4] * \
-        # np.exp(-0.5*(((X-self.doubleVals[0][0])/self.doubleVals[2][0])**2+((Y-self.doubleVals[0][1])/self.doubleVals[2][1])**2)) + \
-        # self.doubleVals[3] * \
-        # np.maximum(np.zeros((1024,1024)),  (1 - ((X - self.doubleVals[0][0]) / self.doubleVals[1][0]) ** 2 - ((Y - self.doubleVals[0][1]) / self.doubleVals[1][1])  ** 2 )  ) ** 2+ self.doubleoffset
-
-
-        print "redraw fermion image"
-        numerator_inside = - np.exp(q-((X-self.fVals[0][0])**2/self.fVals[1][0]**2+(Y-self.fVals[0][1])**2/self.fVals[1][1]**2)*f(np.exp(q)))
-        l = len(numerator_inside)
-        s = []
-        for i in range(l):
-            x = self.fVals[2] * polylog2(np.array(numerator_inside[i]))/polylog2(- np.exp(q))  + self.fVals[4]
-            s.append(list(x))
         
-        fermionFitImage = s
+        
+        if self.fitMethodFermion.GetValue():
+            print "fermion Fit"
+            self.fVals = fermionFit(self.AOIImage)
+            self.fVals[0][0] += xLeft
+            self.fVals[0][1] += yTop
+            self.foffset = self.fVals[4]
+            q = 0.5* (self.fVals[3][0] + self.fVals[3][1])
+            self.fWidth.SetValue('( %.0f'%(self.fVals[1][0]) + ' , %.0f )'%(self.fVals[1][1]))
+            self.fq.SetValue('( %.2f'%(self.fVals[3][0]) + ' , ' + '%.2f )'%(self.fVals[3][1]))
+        
+            print "redraw fermion image"
+            numerator_inside = - np.exp(q-((X-self.fVals[0][0])**2/self.fVals[1][0]**2+(Y-self.fVals[0][1])**2/self.fVals[1][1]**2)*f(np.exp(q)))
+            l = len(numerator_inside)
+            s = []
+            for i in range(l):
+                x = self.fVals[2] * polylog2(np.array(numerator_inside[i]))/polylog2(- np.exp(q))  + self.fVals[4]
+                s.append(list(x))
+        
+            fermionFitImage = s
+
+            print "plot images"
+            atomImagePlot([atomImage, gaussianFitImage, fermionFitImage], ['original image', 'gaussianFitImage', 'fermion fit'] )
+
+        elif self.fitMethodBoson.GetValue():
+            print "parabolic Fit"
+            self.pVals = twoDParbolicFit(self.AOIImage)
+            self.pVals[0][0] += xLeft
+            self.pVals[0][1] += yTop
+            self.offset = self.pVals[3]
+
+            print "partly Condensate"
+            self.doubleVals = partlyCondensateFit(self.AOIImage)
+            self.doubleVals[0][0] += xLeft
+            self.doubleVals[0][1] += yTop
+            self.doubleoffset = self.doubleVals[5]
+
+            print "redraw parabolic image"
+            parabolicFitImage = np.maximum(np.zeros((1024,1024)), \
+            self.pVals[2] * (1 - ((X - self.pVals[0][0]) / self.pVals[1][0]) ** 2 - ((Y - self.pVals[0][1]) / self.pVals[1][1]) ** 2)  )+\
+            self.pVals[3]
+
+            print "redraw partly condensate image"
+            partlyFitImage = self.doubleVals[4] * \
+            np.exp(-0.5*(((X-self.doubleVals[0][0])/self.doubleVals[2][0])**2+((Y-self.doubleVals[0][1])/self.doubleVals[2][1])**2)) + \
+            self.doubleVals[3] * \
+            np.maximum(np.zeros((1024,1024)),  (1 - ((X - self.doubleVals[0][0]) / self.doubleVals[1][0]) ** 2 - ((Y - self.doubleVals[0][1]) / self.doubleVals[1][1])  ** 2 )  ) ** 2+ self.doubleoffset
+
+            atomImagePlot([atomImage, gaussianFitImage, parabolicFitImage, partlyFitImage], ['original image','gaussian fit','parabolic fit', 'partly BEC fit'] )
+
        
+
+
+        self.gCenter.SetValue('( %.0f'%self.gVals[0][0] + ' , %.0f )'%self.gVals[0][1])
+        self.gSigma.SetValue('( %.0f'%self.gVals[1][0] + ' , %.0f )'%self.gVals[1][1])
+        # self.pCenter.SetValue('( %.0f'%self.pVals[0][0] + ' , %.0f )'%self.pVals[0][1])
+        # self.pWidth.SetValue('( %.0f'%(self.pVals[1][0]) + ' , %.0f )'%(self.pVals[1][1]))
+       
+
+
+      
 
         
 
         # atomImagePlot([atomImage, gaussianFitImage,parabolicFitImage], ['original image','gaussian fit','parabolic fit'] )
-        print "plot images"
-        atomImagePlot([atomImage, gaussianFitImage, fermionFitImage], ['original image', 'gaussianFitImage', 'fermion fit'] )
-        # atomImagePlot([atomImage, gaussianFitImage, parabolicFitImage, partlyFitImage], ['original image','gaussian fit','parabolic fit', 'partly BEC fit'] )
+        
+        
 
     def startAutoRun(self, e):
         print "Begin to watch new files"

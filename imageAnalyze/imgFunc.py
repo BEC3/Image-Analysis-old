@@ -249,11 +249,14 @@ def f(x):
 def fermionFit(data):
 
     def oneDPolylog(x, centerX, Rx, Amp , q, yOffset):
+        print [centerX, Rx, Amp, q, yOffset]
         x = np.array(x)
         
         temp = np.exp(q)
+
         numerator = polylog5half(-np.exp(q - (x-centerX)**2/Rx**2 * f(np.exp(q))))
         denuminator = polylog5half(-np.exp(q))
+
         out = numerator/denuminator * Amp + yOffset
 
         return out
@@ -276,9 +279,21 @@ def fermionFit(data):
     y0 = np.argmax(ySlice)
     # sigmaX = sXguess
     # sigmaY = sYguess
-    sigmaX = 40
-    sigmaY = 40
-    q0 = 4
+    
+    sigmaX = 0
+    for i in xSlice:
+        if i - xOff > 0.5 * AmpX:
+            sigmaX += 1
+
+    sigmaX/=2.
+    sigmaY = 0
+    for i in ySlice:
+        if i - yOff > 0.5 * AmpY:
+            sigmaY += 1
+    sigmaY/=2.
+    print [sigmaX, sigmaY]
+
+    q0 = 0
 
             
     ### 1d fits
