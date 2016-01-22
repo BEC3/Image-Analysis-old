@@ -24,14 +24,14 @@ def atomImagePlot(data, caption):
 # plot atom number
 # data1, data2 should be length of n
 
-def atomNumberPlot(n, data1, data2):
+def atomNumberPlot(n, data1):
     x = range(n)
-    p1, = plot(x, data1, 'ro')
-    p2, = plot(x, data2, 'bo')
-    legend([p1, p2], ["By integration", "By Chemical Potential"])
-    
-    maxNumber = max(max(data1), max(data2))
-    axis([-1, n, 0, maxNumber*1.4])
+    p1 = plot(x, data1, 'ro')
+    # p2, = plot(x, data2, 'bo')
+    # legend([p1, p2], ["By integration", "By Chemical Potential"])
+    maxNumber = max(data1) 
+    # maxNumber = max(max(data1), max(data2))
+    axis([-1, n, 0, maxNumber*1.2])
     grid(True)
     legend()
     title('Atom Number')

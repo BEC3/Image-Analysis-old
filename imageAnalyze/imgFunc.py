@@ -7,6 +7,7 @@ from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 from mpmath import mp
 from polylog import *
+import copy
 
 # list square, for fitting
 def square(list):
@@ -39,11 +40,11 @@ def readData(path):
 
     imageData = np.zeros((layerTotal,rowTotal,colTotal))
     byteIndex = 11
-    for layer in range (layerTotal):
-	for row in range(rowTotal):
-            for col in range (colTotal):
+    for layer in range(layerTotal):
+        for row in range(rowTotal):
+            for col in range(colTotal):
                 imageData[layer][row][col]= struct.unpack('h',chr(b[byteIndex])+chr(b[byteIndex+1]))[0]  
-		byteIndex+=2      
+                byteIndex+=2      
 ###  Construct the transmittance map, with an np.maximum statement to avoid dividing by zero.
     absorbImg=(imageData[0]-imageData[2])/(np.maximum(imageData[1]-imageData[2],1))
 
@@ -59,8 +60,9 @@ def readData(path):
 
 ### atom number #######
 def atomNumber(Img, offset):
-    Img[:] = [x - offset for x in Img]
-    return np.sum(np.sum(Img))  * (pixelToDistance**2)/crossSection
+    ImgCopy = copy.deepcopy(Img)
+    ImgCopy[:] = [x - offset for x in ImgCopy]
+    return np.sum(np.sum(ImgCopy))  * (pixelToDistance**2)/crossSection
 
 ### fit image ###
 def twoDGaussianFit(data):
@@ -251,11 +253,9 @@ def fermionFit(data):
     def oneDPolylog(x, centerX, Rx, Amp , q, yOffset):
         print [centerX, Rx, Amp, q, yOffset]
         x = np.array(x)
-        
-        temp = np.exp(q)
 
-        numerator = polylog5half(-np.exp(q - (x-centerX)**2/Rx**2 * f(np.exp(q))))
-        denuminator = polylog5half(-np.exp(q))
+        numerator = fermi_poly5half(q - (x-centerX)**2/Rx**2 * f(np.exp(q)))
+        denuminator = fermi_poly5half(q)
 
         out = numerator/denuminator * Amp + yOffset
 
@@ -293,7 +293,7 @@ def fermionFit(data):
     sigmaY/=2.
     print [sigmaX, sigmaY]
 
-    q0 = 0
+    q0 = 1
 
             
     ### 1d fits
@@ -372,136 +372,44 @@ def atomNumberFit(mu, omegaRadial, omegaAxial, U0):
     #print '(2*mu)/(m*omegaBar**2))**(3/2)'
     #print ((2*mu)/(m*omegaBar**2))**(3/2)
     N = (8 *np.pi/15) * ((2*mu)/(m*omegaBar**2))**(3./2.) * (mu/U0)
+
+
     return N
         
-    
+def fillImageAOI(data, AOI, offset):
+    out = np.zeros((1024,1024)) + offset
+    out[AOI[0][0]:AOI[0][1],AOI[1][0]:AOI[1][1]] 
 
 ###### multiple shots functions ##########
 
 #fit temperature from thermal gas
-def fitTemperature(arr1, arr2, arr3, arr4, arr5):
-    m = mLi
+def dataFit(atom, arr1, arr2, arr3):
+    if atom == "Li":
+        m = mLi
+    elif atom == "Na":
+        m = mNa
 
     timeOfFlight = arr1
     RX = arr2
     RY = arr3
-    qX = arr4
-    qY = arr5
-    templist1 = np.zeros(len(arr1))
-    templist2 = np.zeros(len(arr1))
-    for i in range(len(arr1)):
-        templist1[i] = RX[i]**2/f(np.exp(qX[i]))
-        templist2[i] = RY[i]**2/f(np.exp(qY[i]))
-
-    linregressX = stats.linregress(templist1, np.array(square(timeOfFlight)))
-    # linregressX = stats.linregress(np.array(square(timeOfFlight)), templist1)
-    slopeX = linregressX[0]
-
+    # print stats.linregress(np.array(square(RX)), np.array(square(timeOfFlight)))
+    slopeX, bX, rX, pX, sX = stats.linregress(np.array(square(RX)), np.array(square(timeOfFlight)))
 
     Tempx = m  / (2 * kB * slopeX) 
- 
-    # print("temperature calculated from X is %f nK" %(temperatureX * 1E9))
-    linregressY = stats.linregress(templist2, np.array(square(timeOfFlight)))
-    # linregressY = stats.linregress(np.array(square(timeOfFlight)), templist2)
-    slopeY = linregressY[0]
+    wx = 1/np.sqrt(bX)
+
+    slopeY, bY, rY, pY, sY = stats.linregress(np.array(square(RY)),np.array(square(timeOfFlight)))
+   
     Tempy = m / (2 * kB * slopeY)
-    # print("temperature calculated from Y is %f nK" %(temperatureY * 1E9))
+    wy = 1/np.sqrt(bY)
+
 
    
-    return [Tempx, Tempy]
+    return [Tempx, Tempy, wx, wy]
 
-
-def fitInTrapRadialHalfWidth(tofList, pHalfWidthRadialList, TrapFreqRadial):
-    
-    return 0
-
-def fitTrapFrequency(arr1, arr2, arr3, arr4, arr5):
-    m = mLi
-
-    timeOfFlight = arr1
-    RX = arr2
-    RY = arr3
-    qX = arr4
-    qY = arr5
-    templist1 = np.zeros(len(arr1))
-    templist2 = np.zeros(len(arr1))
-    for i in range(len(arr1)):
-        templist1[i] = RX[i]**2/f(np.exp(qX[i]))
-        templist2[i] = RY[i]**2/f(np.exp(qY[i]))
-
-
-    linregressX = stats.linregress(templist1, np.array(square(timeOfFlight)))
-    bX = linregressX[1]
-    
-    omegaX = np.sqrt(1/bX)
-
-    linregressY = stats.linregress(templist2, np.array(square(timeOfFlight)))
-    bY = linregressY[1]
-    
-    omegaY = np.sqrt(1/bY)
-
-    return [omegaX, omegaY]
-# def fitTrapFrequency(tof, rho, z, rho_init, z_init):
-    # n = len(tof)
-    # rhoOverZ = []
-    # for i in range(n):
-    #     rhoOverZ.append(rho[i]/z[i])
-    # # print rho_init
-    # # print z_init
-    # def rhoZRatio(t, omegaRadial, omegaAxial):
-    #     e = omegaAxial/omegaRadial
-    #     tau = omegaRadial * t
-    #     temp1 = np.sqrt(1 + tau **2)
-    #     temp2 = 1 + e**2 * (tau * np.arctan(tau) - np.log(np.sqrt(1 + tau**2)))
-    #     return e * temp1/temp2 
-
-
-    # trapVals, trapCov= curve_fit(rhoZRatio, tof, rhoOverZ , p0=(rho_init, z_init))
-    # # print trapVals
-
-    # templist = [None] * n
-    # for i in range(n):
-    #     templist[i] = 1 + trapVals[0] ** 2 * tof[i] ** 2
-    # lineVals = stats.linregress(templist, rho)
-    # rho0 = lineVals[0]
-    # a = trapVals.tolist()
-    # a.append(rho0)
-    # return a
-
-    
-
-    
-def Trap_frequency_fit_from_radius(rho_array, ToF_array):
-    rhoregress = stats.linregress(square(ToF_array), square(rho_array))
-    #print rhoregress
-    
-    ##y = rhoregress[1] + rhoregress[0] * (square(ToF_array))
-    #t = [-0.02,0,0.05,0.1]
-    #y = [rhoregress[1] + rhoregress[0] * x for x in t]
-    #plt.plot(square(ToF_array), square(rho_array), 'ro')
-    ##plt.plot(square(ToF_array), y)
-    #line, = plt.plot(t, y, lw=2)
-    #plt.show()
-    return [sqrt(rhoregress[0]/rhoregress[1]), sqrt(rhoregress[1])]
-
-# multiple fit for fermion
-def fermionTemperature(tof, omegaAxial, omegaRadial, rx, ry, qx, qy):
-    m = mLi
-
-    p1 = (m*rx**2)/(2*kB)
-    p2 = omegaAxial**2/(1+omegaAxial**2 * tof**2)
-    p3 = 1/f(np.exp(qx))
-    Tx = p1*p2*p3
-
-    p1 = (m*ry**2)/(2*kB)
-    p2 = omegaRadial**2/(1+omegaRadial**2 * tof**2)
-    p3 = 1/f(np.exp(qy))
-    Ty = p1*p2*p3
-
-    return [Tx, Ty]
 
 
 # temperature divided by fermionic temperature
 def TOverTF(q):
-    return (-6*polylog3(-np.exp(q)))**(-1./3.)
+    return (6*fermi_poly3(q))**(-1./3.)
 

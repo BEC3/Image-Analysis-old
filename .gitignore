@@ -2,4 +2,4 @@ data/
 documents/
 imageAnalyze/*.pyc
 
-## imageAnalyze/localPath.py
+imageAnalyze/localPath.py
