@@ -324,8 +324,8 @@ def temperatureSingleGaussianFit(ToF, gSigmaX, gSigmaY, OmegaAxial, OmegaRadial,
     else:
         return false
     
-    Tempx = (m * gSigmaX**2 * OmegaAxial ** 2)/(2*kB*(1 + OmegaAxial ** 2 * ToF ** 2))
-    Tempy = (m * gSigmaY**2 * OmegaRadial ** 2)/(2*kB*(1 + OmegaRadial ** 2 * ToF ** 2))
+    Tempx = (m * 2 * gSigmaX**2 * OmegaAxial ** 2)/(2*kB*(1 + OmegaAxial ** 2 * ToF ** 2))
+    Tempy = (m * 2 * gSigmaY**2 * OmegaRadial ** 2)/(2*kB*(1 + OmegaRadial ** 2 * ToF ** 2))
 
     # averageTemp = 0.5*(Tempx + Tempy)
     # deltaTemp = 0.5*abs(Tempx - Tempy)
@@ -390,18 +390,18 @@ def dataFit(atom, arr1, arr2, arr3):
         m = mNa
 
     timeOfFlight = arr1
-    RX = arr2
-    RY = arr3
+    RX = np.array(arr2) * 1.414
+    RY = np.array(arr3) * 1.414
     # print stats.linregress(np.array(square(RX)), np.array(square(timeOfFlight)))
     slopeX, bX, rX, pX, sX = stats.linregress(np.array(square(RX)), np.array(square(timeOfFlight)))
 
     Tempx = m  / (2 * kB * slopeX) 
-    wx = 1/np.sqrt(bX)
+    wx = 1/np.sqrt(-bX)
 
     slopeY, bY, rY, pY, sY = stats.linregress(np.array(square(RY)),np.array(square(timeOfFlight)))
    
     Tempy = m / (2 * kB * slopeY)
-    wy = 1/np.sqrt(bY)
+    wy = 1/np.sqrt(-bY)
 
 
    

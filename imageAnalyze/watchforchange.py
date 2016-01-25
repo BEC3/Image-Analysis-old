@@ -6,10 +6,10 @@ from watchdog.events import PatternMatchingEventHandler
 
 
 class MyHandler(PatternMatchingEventHandler):
-	def __init__(self, functionToCall, parent):
+	def __init__(self):
 		super( MyHandler, self ).__init__()
-		self.f = functionToCall
-		self.parent = parent
+		# self.f = functionToCall
+		# self.parent = parent
 
 	patterns = ["*.aia"]
 
@@ -25,7 +25,7 @@ class MyHandler(PatternMatchingEventHandler):
 		"""
 		# the file will be processed there
 		print event.src_path, event.event_type  # print now only for debug
-		self.f(self.parent)
+		# self.f(self.parent)
 		# self.showImg()
 		# os.system('python AnalyzeAIA.py')
 	def on_modified(self, event):

@@ -111,7 +111,7 @@ class ImageUI(wx.Frame):
 ######### single shoot functions ############
         block3 = wx.StaticText(panel, pos=(420,20), size=(100, 25), label='Single Shot')
         block3.SetFont(font)
-        block4 = wx.StaticText(panel, pos=(420,55), size=(100, 25), label='Input Values')
+        block4 = wx.StaticText(panel, pos=(420,55), size=(100, 25), label='Set parameters')
         block4.SetFont(font)
 
         #set input
@@ -160,7 +160,7 @@ class ImageUI(wx.Frame):
         block6 = wx.StaticText(panel, pos=(820,20), size=(100, 25), label='Multiple Shots')
     	block6.SetFont(font)
 
-        block7 = wx.StaticText(panel, pos=(820,60), size=(100, 25), label='Input Values')
+        block7 = wx.StaticText(panel, pos=(820,60), size=(100, 25), label='Read Data')
         block7.SetFont(font)
         readButton = wx.Button(panel, pos=(820, 100), size = (140, 25), label = 'Read saved data')
         readButton.Bind(wx.EVT_BUTTON, self.readData)
@@ -171,30 +171,31 @@ class ImageUI(wx.Frame):
         block8.SetFont(font)
         fitListButton = wx.Button(panel, pos=(820, 200), size = (200, 25), label = 'List Data Fit')
         fitListButton.Bind(wx.EVT_BUTTON, self.fitListData)
-        self.fitTempText = wx.TextCtrl(panel, pos=(1030,200), size=(110, 25), style=wx.TE_READONLY)
-        wx.StaticText(panel, pos=(1150,200), size=(30, 25), label='nK')
+        wx.StaticText(panel, pos=(850,230) , size=(50, 30), label = 'Temperature')
+        self.fitTempText = wx.TextCtrl(panel, pos=(940,230), size=(110, 25), style=wx.TE_READONLY)
+        wx.StaticText(panel, pos=(1060,230), size=(30, 25), label='nK')
         # wx.StaticText(panel, pos=(910,230) , size=(50, 30), label = 'rho0')
         # self.fitrho0Text = wx.TextCtrl(panel, pos=(990,230), size=(50, 25), style=wx.TE_READONLY)
         # wx.StaticText(panel, pos=(1050,230) , size=(30, 25), label = 'um')
         # fitTrapFreqButton = wx.Button(panel, pos=(700, 260), size = (200, 25), label = 'List Data Fit')
         # fitTrapFreqButton.Bind(wx.EVT_BUTTON, self.fitListData)
-        wx.StaticText(panel, pos=(900,260) , size=(50, 30), label = 'Axial')
-        self.fitTrapAxialFreqText = wx.TextCtrl(panel, pos=(990,260), size=(50, 25), style=wx.TE_READONLY)
-        wx.StaticText(panel, pos=(1140,260) , size=(60, 25), label = '*2pi Hz')
-        wx.StaticText(panel, pos=(900,290) , size=(50, 30), label = 'Radial')
-        self.fitTrapRadialFreqText = wx.TextCtrl(panel, pos=(990,290), size=(50, 25), style=wx.TE_READONLY)
-        wx.StaticText(panel, pos=(1140,290) , size=(60, 25), label = '*2pi Hz')
+        wx.StaticText(panel, pos=(850,260) , size=(50, 30), label = 'Axial')
+        self.fitTrapAxialFreqText = wx.TextCtrl(panel, pos=(940,260), size=(50, 25), style=wx.TE_READONLY)
+        wx.StaticText(panel, pos=(1000,260) , size=(60, 25), label = '*2pi Hz')
+        wx.StaticText(panel, pos=(850,290) , size=(50, 30), label = 'Radial')
+        self.fitTrapRadialFreqText = wx.TextCtrl(panel, pos=(940,290), size=(50, 25), style=wx.TE_READONLY)
+        wx.StaticText(panel, pos=(1000,290) , size=(60, 25), label = '*2pi Hz')
         #
 
 ######## draw figures ############
-        block9 = wx.StaticText(panel, pos=(850,350), size=(100, 25), label='Draw Figures')
+        block9 = wx.StaticText(panel, pos=(820,350), size=(100, 25), label='Draw Figures')
         block9.SetFont(font)
-        drawAtomNumberButton = wx.Button(panel, pos=(850, 390), size = (200, 25), label = 'Draw atom number figure')
+        drawAtomNumberButton = wx.Button(panel, pos=(820, 390), size = (200, 25), label = 'Draw atom number figure')
         drawAtomNumberButton.Bind(wx.EVT_BUTTON, self.drawAtomNumber)
 
-        block10 = wx.StaticText(panel, pos=(850,450), size=(100, 25), label='Recent Atom Number')
+        block10 = wx.StaticText(panel, pos=(820,450), size=(200, 25), label='Recent Atom Number List')
         block10.SetFont(font)
-        self.recentAtomNumberInt = wx.TextCtrl(panel, pos=(850,490), size=(140, 180), style=wx.TE_READONLY | wx.TE_MULTILINE | wx.HSCROLL)
+        self.recentAtomNumberInt = wx.TextCtrl(panel, pos=(820,490), size=(140, 180), style=wx.TE_READONLY | wx.TE_MULTILINE | wx.HSCROLL)
         # self.recentAtomNumberChem = wx.TextCtrl(panel, pos=(850,490), size=(150, 180), style=wx.TE_READONLY | wx.TE_MULTILINE | wx.HSCROLL)
      
 
@@ -411,8 +412,14 @@ class ImageUI(wx.Frame):
             ## Atom number using chemical potential
 
         ToF = float(self.tof.GetValue()) / 1000
-        omegaAxial = float(self.omegaAxial.GetValue())
-        omegaRadial = float(self.omegaRadial.GetValue())
+        omegaAxial = float(self.omegaAxial.GetValue()) * np.pi * 2
+        omegaRadial = float(self.omegaRadial.GetValue()) * np.pi * 2
+
+        atom = ""
+        if self.fitMethodBoson.GetValue():
+            atom = "Na"
+        elif self.fitMethodFermion.GetValue():
+            atom = "Li"
 
         # mu = chemicalPotential(ToF, omegaRadial * 2 * np.pi, self.pVals[1][1]* pixelToDistance)
         #print 'mu%f'%(mu*1E30)
@@ -443,7 +450,7 @@ class ImageUI(wx.Frame):
         gSigmaX = self.gVals[1][0] * pixelToDistance
         gSigmaY = self.gVals[1][1] * pixelToDistance
 
-        self.gTmp = temperatureSingleGaussianFit(ToF, gSigmaX, gSigmaY, omegaAxial, omegaRadial, 'Li') 
+        self.gTmp = temperatureSingleGaussianFit(ToF, gSigmaX, gSigmaY, omegaAxial, omegaRadial, atom) 
         
         self.gTemperature.SetValue(str('( %.0f' % (self.gTmp[0]*1E9)) + ' , ' + '%.0f )' % (self.gTmp[1]*1E9))
         
