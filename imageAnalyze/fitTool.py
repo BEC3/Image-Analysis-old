@@ -32,10 +32,6 @@ def initialGauss(data):
 
 def gaussionDistribution(coordinates, x0, y0, a, b, amplitude, offset):
 	"""gaussionParams = ((x0, y0, a, b, amplitude, offset)) """
-	# print coordinates
-	# print gaussionParams
-
-	# x0, y0, a, b, theta0, amplitude, offset = gaussionParams
 
 	dist = offset + amplitude * np.exp(- (coordinates[0] - x0) **2/a**2 - (coordinates[1] - y0)**2/b**2)
 	return dist.ravel()
@@ -49,8 +45,12 @@ def fermionDistribution(coordinates, x0, y0, a, b, amplitude, offset, q):
 	return dist
 
 
-def bosonDistribution(x, y, bosonParams):
+def bosonDistribution(coordinates, x0, y0, a, b, amplitudeC, offset, amplitudeT, Ca, Cb):
 	"""BosonParams = ?"""
+	thermalPart = amplitudeT * np.exp(- (coordinates[0] - x0) **2/a**2 - (coordinates[1] - y0)**2/b**2)
+	condensatePart = amplitudeC *  np.maximum( (1 - Ca * (coordinates[0] - x0)**2 - Cb * (coordinates[1] - y0)**2), 0)
+	dist = thermalPart + condensatePart + offset
+	return dist.ravel()
 
 def fitData(data, distribution):
 	size = np.shape(data)
@@ -58,7 +58,9 @@ def fitData(data, distribution):
 	if distribution == fermionDistribution:
 		guess.append(1)
 	elif distribution == bosonDistribution:
-		guess.append(0.5, 0.5)
+		guess.append(1)
+		guess.append(0.1)
+		guess.append(0.1)
 
 	coordinates = np.meshgrid(range(size[0]), range(size[1]))
 	

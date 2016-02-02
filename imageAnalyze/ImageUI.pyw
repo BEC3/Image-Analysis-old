@@ -96,12 +96,14 @@ class ImageUI(wx.Frame):
         wx.StaticText(panel, pos=(20,400), size=(100, 25), label='Sigma is')
         self.gSigma = wx.TextCtrl(panel, pos=(140,400), size=(100, 25), value='', style=wx.TE_READONLY)
         
-        self.pLabel = wx.StaticText(panel, pos=(20,430), size=(100, 25), label='Paraboic Fit')
-        self.pText1 = wx.StaticText(panel, pos=(20,460), size=(100, 25), label='Center at')
-        self.pCenter = wx.TextCtrl(panel, pos=(140,460), size=(100, 25), value='', style=wx.TE_READONLY)
-        self.pText2 = wx.StaticText(panel, pos=(20,490), size=(100, 25), label='Half Width is')
-        self.pWidth = wx.TextCtrl(panel, pos=(140,490), size=(100, 25), value='', style=wx.TE_READONLY)
-        
+        self.pLabel = wx.StaticText(panel, pos=(20,430), size=(100, 25), label='Boson Fit')
+        self.pText1 = wx.StaticText(panel, pos=(20,460), size=(100, 25), label='Thermal Size')
+        self.pWidth1 = wx.TextCtrl(panel, pos=(140,460), size=(100, 25), value='', style=wx.TE_READONLY)
+        self.pText2 = wx.StaticText(panel, pos=(20,490), size=(100, 25), label='Condensate Size')
+        self.pWidth2 = wx.TextCtrl(panel, pos=(140,490), size=(100, 25), value='', style=wx.TE_READONLY)
+        self.becFractionLabel = wx.StaticText(panel, pos=(20,520), size=(120, 25), label='BEC Fraction')
+        self.becFraction = wx.TextCtrl(panel, pos=(140,520), size=(150, 25), value='', style=wx.TE_READONLY)
+
         self.fLabel = wx.StaticText(panel, pos=(20,430), size=(100, 25), label='Fermion Fit')
         self.fText1 = wx.StaticText(panel, pos=(20,460), size=(100, 25), label='(Rx, Ry)')
         self.fWidth = wx.TextCtrl(panel, pos=(140,460), size=(100, 25), value='', style=wx.TE_READONLY)
@@ -221,9 +223,9 @@ class ImageUI(wx.Frame):
         print "Fermion Fit"
         self.pLabel.Hide()
         self.pText1.Hide()
-        self.pCenter.Hide()
+        self.pWidth1.Hide()
         self.pText2.Hide()
-        self.pWidth.Hide()
+        self.pWidth2.Hide()
         self.atomNumberChemLabel.Hide()
         self.atomNumberChem.Hide()
         self.fLabel.Show()
@@ -243,9 +245,9 @@ class ImageUI(wx.Frame):
         print "Boson Fit"
         self.pLabel.Show()
         self.pText1.Show()
-        self.pCenter.Show()
+        self.pWidth1.Show()
         self.pText2.Show()
-        self.pWidth.Show()
+        self.pWidth2.Show()
         self.atomNumberChemLabel.Show()
         self.atomNumberChem.Show()
         self.fLabel.Hide()
@@ -355,36 +357,22 @@ class ImageUI(wx.Frame):
         
         elif self.fitMethodBoson.GetValue():
             print "boson Fit"
-        #     self.pVals = twoDParbolicFit(self.AOIImage)
-        #     self.pVals[0][0] += xLeft
-        #     self.pVals[0][1] += yTop
-        #     self.offset = self.pVals[3]
+            self.bosonParams = fitData(self.AOIImage, bosonDistribution)
+            print self.bosonParams
+            self.bosonParams[0] += xLeft
+            self.bosonParams[1] += yTop
+            x0, y0, a, b, amplitudeC, offset, amplitudeT, Ca, Cb = self.bosonParams
 
-        #     # print "partly Condensate"
-        #     # self.doubleVals = partlyCondensateFit(self.AOIImage)
-        #     # self.doubleVals[0][0] += xLeft
-        #     # self.doubleVals[0][1] += yTop
-        #     # self.doubleoffset = self.doubleVals[5]
-
-        #     print "redraw parabolic image"
-        #     parabolicFitImage = np.maximum(np.zeros((1024,1024)), \
-        #     self.pVals[2] * (1 - ((X - self.pVals[0][0]) / self.pVals[1][0]) ** 2 - ((Y - self.pVals[0][1]) / self.pVals[1][1]) ** 2)  )+\
-        #     self.pVals[3]
-
-            print "redraw partly condensate image"
-        #     # partlyFitImage = self.doubleVals[4] * \
-        #     # np.exp(-0.5*(((X-self.doubleVals[0][0])/self.doubleVals[2][0])**2+((Y-self.doubleVals[0][1])/self.doubleVals[2][1])**2)) + \
-        #     # self.doubleVals[3] * \
-        #     # np.maximum(np.zeros((1024,1024)),  (1 - ((X - self.doubleVals[0][0]) / self.doubleVals[1][0]) ** 2 - ((Y - self.doubleVals[0][1]) / self.doubleVals[1][1])  ** 2 )  ) ** 2+ self.doubleoffset
-        #     atomImagePlot([atomImage, gaussianFitImage, parabolicFitImage], ['original image','gaussian fit', 'parabolic fit'])
-        #     # atomImagePlot([atomImage, gaussianFitImage, parabolicFitImage, partlyFitImage], ['original image','gaussian fit','parabolic fit', 'partly BEC fit'] )
+            print "redraw boson image"
+            bosonFitImage = bosonDistribution(coordinates, x0, y0, a, b, amplitudeC, offset, amplitudeT, Ca, Cb).reshape(1024,1024)
+            atomImagePlot([atomImage, gaussianFitImage, bosonFitImage], ['original image','gaussian fit','boson fit'], [N_int/1000000, amplitudeC/(amplitudeT+amplitudeC)] )
 
        
 
 
-        # # self.pCenter.SetValue('( %.0f'%self.pVals[0][0] + ' , %.0f )'%self.pVals[0][1])
-        # # self.pWidth.SetValue('( %.0f'%(self.pVals[1][0]) + ' , %.0f )'%(self.pVals[1][1]))
-       
+            self.pWidth1.SetValue('( %.0f'%self.bosonParams[2] + ' , %.0f )'%self.bosonParams[3])
+            self.pWidth2.SetValue('( %.0f'%(1/np.sqrt(self.bosonParams[7])) + ' , %.0f )'%(1/np.sqrt(self.bosonParams[8])))
+            self.becFraction.SetValue('%0.2f'%(amplitudeC/(amplitudeT+amplitudeC)))       
 
 
       
