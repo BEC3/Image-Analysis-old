@@ -107,7 +107,11 @@ class ImageUI(wx.Frame):
         self.fWidth = wx.TextCtrl(panel, pos=(140,460), size=(100, 25), value='', style=wx.TE_READONLY)
         self.fText2 = wx.StaticText(panel, pos=(20,490), size=(150, 25), label='q(=mu*beta)')
         self.fq = wx.TextCtrl(panel, pos=(140,490), size=(150, 25), value='', style=wx.TE_READONLY)
-
+        self.tOverTFLabel = wx.StaticText(panel, pos=(20,520), size=(120, 25), label='T/T_F')
+        self.tOverTF = wx.TextCtrl(panel, pos=(140,520), size=(150, 25), value='', style=wx.TE_READONLY)
+        wx.StaticText(panel, pos=(20,550), size=(100, 25), label='Atom# by int')
+        # wx.StaticText(panel, pos=(420,350), size=(100, 25), label='By integration')
+        self.atomNumberInt = wx.TextCtrl(panel, pos=(140,550), size=(100, 25), value='', style=wx.TE_READONLY)
 
 ######### single shoot functions ############
         block3 = wx.StaticText(panel, pos=(420,20), size=(100, 25), label='Single Shot')
@@ -135,9 +139,7 @@ class ImageUI(wx.Frame):
         #atom number
         block5 = wx.StaticText(panel, pos=(420,295), size=(100, 25), label='Output Values')
         block5.SetFont(font)
-        wx.StaticText(panel, pos=(420,320), size=(100, 25), label='Atom Number')
-        wx.StaticText(panel, pos=(420,350), size=(100, 25), label='By integration')
-        self.atomNumberInt = wx.TextCtrl(panel, pos=(570,350), size=(100, 25), value='', style=wx.TE_READONLY)
+        
         self.atomNumberChemLabel = wx.StaticText(panel, pos=(420,380), size=(100, 25), label='By chemical potential')
         self.atomNumberChem = wx.TextCtrl(panel, pos=(570,380), size=(100, 25), value='', style=wx.TE_READONLY)
         #temperature
@@ -146,9 +148,7 @@ class ImageUI(wx.Frame):
         wx.StaticText(panel, pos=(520,450), size=(100, 25), label='nK (from Gaussian fit)')
         # self.fTemperature = wx.TextCtrl(panel, pos=(420,480), size=(100, 25), value='', style=wx.TE_READONLY)
         # self.fTempLabel = wx.StaticText(panel, pos=(520,480), size=(100, 25), label='nK (from Fermion fit)')
-        self.tOverTFLabel = wx.StaticText(panel, pos=(420,510), size=(120, 25), label='T/T_F')
-        self.tOverTF = wx.TextCtrl(panel, pos=(520,510), size=(150, 25), value='', style=wx.TE_READONLY)
-
+       
 ######## save fitting result ##############
         self.saveFermionButton = wx.Button(panel, pos=(420, 580), size = (160, 25), label = 'Save fermion results')
         self.saveFermionButton.Bind(wx.EVT_BUTTON, self.saveFermionResult)
@@ -331,7 +331,8 @@ class ImageUI(wx.Frame):
         self.gCenter.SetValue('( %.0f'%x0 + ' , %.0f )'%y0)
         self.gSigma.SetValue('( %.0f'%a + ' , %.0f )'%b)
         
-
+        N_int = atomNumber(self.AOIImage, self.offset)
+        self.atomNumberInt.SetValue(str("%.0f" % N_int))
 
         if self.fitMethodFermion.GetValue():
             print "fermion Fit"
@@ -344,11 +345,13 @@ class ImageUI(wx.Frame):
             self.foffset = self.fermionParams[5]
             self.fWidth.SetValue('( %.0f'%(self.fermionParams[2]) + ' , %.0f )'%(self.fermionParams[3]))
             self.fq.SetValue('%.2f'%(self.fermionParams[6]))
-        
+            tovertf = TOverTF(self.fermionParams[6])
+            self.tOverTF.SetValue(str('%.3f' % tovertf ))
+
             print "redraw fermion image"
             fermionFitImage = fermionDistribution(coordinates, x0, y0, a, b, amplitude, offset, q).reshape(1024,1024)
        
-            atomImagePlot([atomImage, gaussianFitImage, fermionFitImage], ['original image', 'gaussianFitImage', 'fermion fit'] )
+            atomImagePlot([atomImage, gaussianFitImage, fermionFitImage], ['original image', 'gaussianFitImage', 'fermion fit'], [N_int/1000000, tovertf])
         
         elif self.fitMethodBoson.GetValue():
             print "boson Fit"
@@ -429,22 +432,21 @@ class ImageUI(wx.Frame):
         # N_chem = atomNumberFit(mu, omegaRadial * 2 * np.pi, omegaAxial * 2 * np.pi, U0)
         
         # self.atomNumberChem.SetValue(str("%.0f" % N_chem))
-        N_int = 0
+        
 
-        N_int = atomNumber(self.AOIImage, self.offset)
-        self.atomNumberInt.SetValue(str("%.0f" % N_int))
+        
 
         if self.fitMethodFermion.GetValue():
             Rx = self.fermionParams[2] * pixelToDistance
             Ry = self.fermionParams[3] * pixelToDistance
             self.q = self.fermionParams[6]
 
-            tovertf = TOverTF(self.q)
+            
             
 
             # self.fTmp = fermionTemperature(ToF, omegaAxial, omegaRadial, Rx, Ry, self.qX, self.qY)
             # self.fTemperature.SetValue(str('( %.0f' % (self.fTmp[0]*1E9)) + ' , ' + '%.0f )' % (self.fTmp[1]*1E9))
-            self.tOverTF.SetValue(str('%.3f' % tovertf ))
+
 
 
         gSigmaX = self.gaussionParams[2] * pixelToDistance
