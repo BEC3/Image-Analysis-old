@@ -240,12 +240,7 @@ def partlyCondensateFit(data):
     return [[x0,y0], [widthX, widthY], [sigmaX,sigmaY], AmpP, AmpG, offset]
 
 # for fermionic fit
-def f(x):
-    # if x == 0:
-    #     return 0
-    # if x < -1:
-    #     return 0
-    return (1+x)/x * np.log(1+x)
+
 
 # fermionic fit
 def fermionFit(data):

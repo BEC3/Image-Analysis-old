@@ -1,1 +1,1 @@
-LOCAL_PATH = "../data/NA/"
+LOCAL_PATH = "../data/fermion/"
