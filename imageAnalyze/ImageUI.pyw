@@ -327,7 +327,7 @@ class ImageUI(wx.Frame):
         # gaussianFitImage = self.gVals[2]*np.exp(-0.5*(((X-self.gVals[0][0])/self.gVals[1][0])**2+((Y-self.gVals[0][1])/self.gVals[1][1])**2))+self.gVals[3]
         size = np.shape(self.AOIImage)
         coordinates = np.meshgrid(x, y)
-        gaussianFitImage = gaussionDistribution(coordinates, x0, y0, a, b, amplitude, offset).reshape(1024,1024)
+        gaussianFitImage = gaussionDistribution(coordinates, x0, y0, a, b, amplitude, offset).reshape(xRight-xLeft,yBottom-yTop)
         
         # atomImagePlot([atomImage, gaussianFitImage], ['original image', 'gaussianFitImage'] )
         self.gCenter.SetValue('( %.0f'%x0 + ' , %.0f )'%y0)
@@ -340,10 +340,12 @@ class ImageUI(wx.Frame):
             print "fermion Fit"
             self.fermionParams = fitData(self.AOIImage, fermionDistribution)
             """x0, y0, a, b, amplitude, offset, q"""
-            x0, y0, a, b, amplitude, offset, q = self.fermionParams
+            
         
             self.fermionParams[0] += xLeft
             self.fermionParams[1] += yTop
+
+            x0, y0, a, b, amplitude, offset, q = self.fermionParams
             self.foffset = self.fermionParams[5]
             self.fWidth.SetValue('( %.0f'%(self.fermionParams[2]) + ' , %.0f )'%(self.fermionParams[3]))
             self.fq.SetValue('%.2f'%(self.fermionParams[6]))
@@ -351,9 +353,9 @@ class ImageUI(wx.Frame):
             self.tOverTF.SetValue(str('%.3f' % tovertf ))
 
             print "redraw fermion image"
-            fermionFitImage = fermionDistribution(coordinates, x0, y0, a, b, amplitude, offset, q).reshape(1024,1024)
+            fermionFitImage = fermionDistribution(coordinates, x0, y0, a, b, amplitude, offset, q).reshape(xRight-xLeft,yBottom-yTop)
        
-            atomImagePlot([atomImage, gaussianFitImage, fermionFitImage], ['original image', 'gaussianFitImage', 'fermion fit'], [N_int/1000000, tovertf])
+            atomImagePlot([atomImage[yTop:yBottom,xLeft:xRight], gaussianFitImage, fermionFitImage], ['original image', 'gaussianFitImage', 'fermion fit'], [N_int/1000000, tovertf])
         
         elif self.fitMethodBoson.GetValue():
             print "boson Fit"
@@ -364,8 +366,8 @@ class ImageUI(wx.Frame):
             x0, y0, a, b, amplitudeC, offset, amplitudeT, Ca, Cb = self.bosonParams
 
             print "redraw boson image"
-            bosonFitImage = bosonDistribution(coordinates, x0, y0, a, b, amplitudeC, offset, amplitudeT, Ca, Cb).reshape(1024,1024)
-            atomImagePlot([atomImage, gaussianFitImage, bosonFitImage], ['original image','gaussian fit','boson fit'], [N_int/1000000, amplitudeC/(amplitudeT+amplitudeC)] )
+            bosonFitImage = bosonDistribution(coordinates, x0, y0, a, b, amplitudeC, offset, amplitudeT, Ca, Cb).reshape(xRight-xLeft,yBottom-yTop)
+            atomImagePlot([atomImage[yTop:yBottom,xLeft:xRight], gaussianFitImage, bosonFitImage], ['original image','gaussian fit','boson fit'], [N_int/1000000, amplitudeC/(amplitudeT+amplitudeC)] )
 
        
 
@@ -450,8 +452,8 @@ class ImageUI(wx.Frame):
          # + self.omegaAxial.GetValue() + ' , ' + self.omegaRadial.GetValue() + ' , '\
          # + str(self.gVals[0][0]) + ' , ' + str(self.gVals[0][1]) + ' , ' \
          + self.atomNumberInt.GetValue() + ' , ' \
-         + str(self.gaussionParams[2]) + ' , ' + str(self.gaussionParams[3]) + ' , ' \
-         # + str(self.pVals[1][0]) + ' , ' + str(self.pVals[1][1])  \
+         + str(self.bosonParams[2]) + ' , ' + str(self.bosonParams[3]) + ' , ' \
+         + str(1/np.sqrt(self.bosonParams[7])) + ' , ' + str(1/np.sqrt(self.bosonParams[8]))  \
             + '\n') 
         
         f.close()
@@ -461,7 +463,7 @@ class ImageUI(wx.Frame):
         
         f.writelines(self.filename + ' , ' + self.tof.GetValue() + ' , '\
          # + self.omegaAxial.GetValue() + ' , ' + self.omegaRadial.GetValue() + ' , '\
-         # + str(self.gVals[0][0]) + ' , ' + str(self.gVals[0][1]) + ' , ' \
+         + str(self.gaussionParams[0]) + ' , ' + str(self.gaussionParams[1]) + ' , ' \
          + self.atomNumberInt.GetValue() + ' , ' \
          + str(self.fermionParams[2]) + ' , ' + str(self.fermionParams[3]) + ' , ' \
          + str(self.fermionParams[6]) + '\n') 
