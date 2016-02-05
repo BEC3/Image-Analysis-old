@@ -74,16 +74,16 @@ class ImageUI(wx.Frame):
         self.Bind(wx.EVT_RADIOBUTTON, self.BosonFitChosen, id=self.fitMethodBoson.GetId())
 
         wx.StaticText(panel, pos=(20,210) , size=(100, 25), label = 'AOI: (x,y)->(x,y)')
-        self.AOI1 = wx.TextCtrl(panel, pos=(130,210) , size=(35, 25), value='0')
-        self.AOI2 = wx.TextCtrl(panel, pos=(165,210) , size=(35, 25), value='0')
-        self.AOI3 = wx.TextCtrl(panel, pos=(200,210) , size=(40, 25), value='1024')
-        self.AOI4 = wx.TextCtrl(panel, pos=(240,210) , size=(40, 25), value='1024')
+        self.AOI1 = wx.TextCtrl(panel, pos=(130,210) , size=(35, 25), value='200')
+        self.AOI2 = wx.TextCtrl(panel, pos=(165,210) , size=(35, 25), value='300')
+        self.AOI3 = wx.TextCtrl(panel, pos=(200,210) , size=(40, 25), value='800')
+        self.AOI4 = wx.TextCtrl(panel, pos=(240,210) , size=(40, 25), value='900')
 
         
 
         showImgButton = wx.Button(panel, pos=(140, 240), size = (90, 40), label = 'Fit Image')
         showImgButton.Bind(wx.EVT_BUTTON, self.showImg)
-        autoButton = wx.Button(panel, pos=(10,560), size=(250,60), label = 'Run automatically')
+        autoButton = wx.Button(panel, pos=(10,580), size=(250,60), label = 'Run automatically')
         autoButton.Bind(wx.EVT_BUTTON, self.startAutoRun)
         autoButton.SetFont(font)
 
@@ -327,7 +327,7 @@ class ImageUI(wx.Frame):
         # gaussianFitImage = self.gVals[2]*np.exp(-0.5*(((X-self.gVals[0][0])/self.gVals[1][0])**2+((Y-self.gVals[0][1])/self.gVals[1][1])**2))+self.gVals[3]
         size = np.shape(self.AOIImage)
         coordinates = np.meshgrid(x, y)
-        gaussianFitImage = gaussionDistribution(coordinates, x0, y0, a, b, amplitude, offset).reshape(1024,1024)
+        gaussianFitImage = gaussionDistribution(coordinates, x0, y0, a, b, amplitude, offset).reshape(xRight-xLeft, yBottom-yTop)
         
         # atomImagePlot([atomImage, gaussianFitImage], ['original image', 'gaussianFitImage'] )
         self.gCenter.SetValue('( %.0f'%x0 + ' , %.0f )'%y0)
@@ -353,7 +353,7 @@ class ImageUI(wx.Frame):
             print "redraw fermion image"
             fermionFitImage = fermionDistribution(coordinates, x0, y0, a, b, amplitude, offset, q).reshape(1024,1024)
        
-            atomImagePlot([atomImage, gaussianFitImage, fermionFitImage], ['original image', 'gaussianFitImage', 'fermion fit'], [N_int/1000000, tovertf])
+            atomImagePlot([atomImage[yTop:yBottom, xLeft:xRight], gaussianFitImage, fermionFitImage], ['original image', 'gaussianFitImage', 'fermion fit'], [N_int/1000000, tovertf])
         
         elif self.fitMethodBoson.GetValue():
             print "boson Fit"
@@ -364,8 +364,8 @@ class ImageUI(wx.Frame):
             x0, y0, a, b, amplitudeC, offset, amplitudeT, Ca, Cb = self.bosonParams
 
             print "redraw boson image"
-            bosonFitImage = bosonDistribution(coordinates, x0, y0, a, b, amplitudeC, offset, amplitudeT, Ca, Cb).reshape(1024,1024)
-            atomImagePlot([atomImage, gaussianFitImage, bosonFitImage], ['original image','gaussian fit','boson fit'], [N_int/1000000, amplitudeC/(amplitudeT+amplitudeC)] )
+            bosonFitImage = bosonDistribution(coordinates, x0, y0, a, b, amplitudeC, offset, amplitudeT, Ca, Cb).reshape(xRight-xLeft, yBottom-yTop)
+            atomImagePlot([atomImage[yTop:yBottom, xLeft:xRight], gaussianFitImage, bosonFitImage], ['original image','gaussian fit','boson fit'], [N_int/1000000, amplitudeC/(amplitudeT+amplitudeC)] )
 
        
 
