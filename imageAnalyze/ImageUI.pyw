@@ -327,11 +327,9 @@ class ImageUI(wx.Frame):
         # gaussianFitImage = self.gVals[2]*np.exp(-0.5*(((X-self.gVals[0][0])/self.gVals[1][0])**2+((Y-self.gVals[0][1])/self.gVals[1][1])**2))+self.gVals[3]
         size = np.shape(self.AOIImage)
         coordinates = np.meshgrid(x, y)
-<<<<<<< HEAD
+
         gaussianFitImage = gaussionDistribution(coordinates, x0, y0, a, b, amplitude, offset).reshape(xRight-xLeft,yBottom-yTop)
-=======
-        gaussianFitImage = gaussionDistribution(coordinates, x0, y0, a, b, amplitude, offset).reshape(xRight-xLeft, yBottom-yTop)
->>>>>>> 5ac4c33fa47cdcf714f2d4a0fdd75246ec880057
+
         
         # atomImagePlot([atomImage, gaussianFitImage], ['original image', 'gaussianFitImage'] )
         self.gCenter.SetValue('( %.0f'%x0 + ' , %.0f )'%y0)
@@ -374,13 +372,10 @@ class ImageUI(wx.Frame):
             x0, y0, a, b, amplitudeC, offset, amplitudeT, Ca, Cb = self.bosonParams
 
             print "redraw boson image"
-<<<<<<< HEAD
+
             bosonFitImage = bosonDistribution(coordinates, x0, y0, a, b, amplitudeC, offset, amplitudeT, Ca, Cb).reshape(xRight-xLeft,yBottom-yTop)
             atomImagePlot([atomImage[yTop:yBottom,xLeft:xRight], gaussianFitImage, bosonFitImage], ['original image','gaussian fit','boson fit'], [N_int/1000000, amplitudeC/(amplitudeT+amplitudeC)] )
-=======
-            bosonFitImage = bosonDistribution(coordinates, x0, y0, a, b, amplitudeC, offset, amplitudeT, Ca, Cb).reshape(xRight-xLeft, yBottom-yTop)
-            atomImagePlot([atomImage[yTop:yBottom, xLeft:xRight], gaussianFitImage, bosonFitImage], ['original image','gaussian fit','boson fit'], [N_int/1000000, amplitudeC/(amplitudeT+amplitudeC)] )
->>>>>>> 5ac4c33fa47cdcf714f2d4a0fdd75246ec880057
+
 
        
 
