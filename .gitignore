@@ -1,5 +1,5 @@
 data/
 documents/
 imageAnalyze/*.pyc
-
+*.txt
 imageAnalyze/localPath.py

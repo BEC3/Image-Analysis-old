@@ -76,3 +76,29 @@ def f(x):
     return (1+x)/x * np.log(1+x)
 
 
+def radioDistribution(data, center, sigma):
+	# print center
+	# print sigma
+	size = np.shape(data)
+	# print size
+	x1 = min(center[0], size[0]-center[0])/float(sigma[0])
+	y1 = min(center[1], size[1]-center[1])/float(sigma[1])
+	r0 = min(x1, y1)
+
+	lr = int(0.9*r0)
+	od_list = []
+
+	for r in np.arange(0, lr, 0.01):
+		od = 0
+		for theta in range(0, 360, 5):
+			x = center[0] + int(r*np.cos(theta) * sigma[0])
+			y = center[1] + int(r*np.sin(theta) * sigma[1])
+			od += data[y, x]
+		od=od/360
+		# print od
+		od_list.append(od)
+
+	return od_list
+
+
+

@@ -22,7 +22,7 @@ class ImageUI(wx.Frame):
   
     def __init__(self, parent, title):
         super(ImageUI, self).__init__(parent, title=title, 
-            size=(1200, 700))
+            size=(1100, 600))
             
         self.InitUI()
         self.Centre()
@@ -45,163 +45,289 @@ class ImageUI(wx.Frame):
         self.observer.schedule(MyHandler(self.autoRun, self), path = self.imageFolderPath.GetValue())
 
         self.fitMethodFermion.SetValue(True)
-        self.FermionFitChosen(e)
+        self.autoRunning = False
+        # self.FermionFitChosen(e)
 
     def InitUI(self):
 
     	panel = wx.Panel(self)
-        font = wx.Font(18, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+        font1 = wx.Font(18, wx.DEFAULT, wx.NORMAL, wx.BOLD)
     	# font = wx.SystemSettings_GetFont(wx.SYS_SYSTEM_FONT)
     	# font.SetPointSize(9)
 ######### file ############
         # set data path
-        block1 = wx.StaticText(panel, pos=(10,20), size=(100, 25), label='Set Image Path')
-        block1.SetFont(font)
-        wx.StaticText(panel, pos=(20,55), size=(100, 25), label='Image Folder Path')
-        # self.imageFolderPath = wx.TextCtrl(panel, pos=(20,75), size=(200,25), value="../BEC_TOF_images/")
-        self.imageFolderPath = wx.TextCtrl(panel, pos=(20,75), size=(200,25), value=LOCAL_PATH)
-        wx.StaticText(panel, pos=(20,110), size=(100, 25), label='Image File Name')
-        chooseFileButton = wx.Button(panel, pos=(20,135), size=(200,25), label = 'Choose File')
+
+        
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+
+        
+
+        settingBox = wx.StaticBox(panel, label = 'Setting')
+        settingBoxSizer = wx.StaticBoxSizer(settingBox, wx.VERTICAL)
+
+        fileBox = wx.StaticBox(settingBox, label = 'File')
+        fileBoxSizer = wx.StaticBoxSizer(fileBox, wx.VERTICAL)
+        pathText = wx.StaticText(settingBox,label='Image Folder Path')
+        fileBoxSizer.Add(pathText, flag=wx.ALL, border=5)
+        self.imageFolderPath = wx.TextCtrl(settingBox, value=LOCAL_PATH)
+        fileBoxSizer.Add(self.imageFolderPath, flag=wx.ALL|wx.EXPAND, border=5)
+        nameText = wx.StaticText(settingBox, label='Image File Name')
+        fileBoxSizer.Add(nameText, flag=wx.ALL, border=5)
+        hbox12 = wx.BoxSizer(wx.HORIZONTAL)
+        self.filenameText = wx.TextCtrl(settingBox)
+        hbox12.Add(self.filenameText, 1, flag=wx.ALL| wx.EXPAND , border=5)
+        chooseFileButton = wx.Button(settingBox, label = 'Choose File')
         chooseFileButton.Bind(wx.EVT_BUTTON, self.chooseFile)
-        
-        # self.imageFileName = wx.TextCtrl(panel, pos=(20,130), size=(200,25))
-        self.filenameText = wx.TextCtrl(panel, pos=(20,170), size=(200, 25))
-        #Fit Img button
-        
-        self.fitMethodFermion = wx.RadioButton(panel, label="Fermion", pos=(10,240), size = (80,20))
-        self.fitMethodBoson = wx.RadioButton(panel, label="Boson", pos=(10,265), size=(80,20))
+        hbox12.Add(chooseFileButton, flag=wx.ALL, border=5)
+        fileBoxSizer.Add(hbox12, flag=wx.ALL| wx.EXPAND, border=0)
+
+        settingBoxSizer.Add(fileBoxSizer, flag=wx.ALL | wx.EXPAND, border = 5)
+
+
+
+        fermionOrBosonBox = wx.StaticBox(settingBox, label = 'Fermion/Boson')
+        fermionOrBosonBoxSizer = wx.StaticBoxSizer(fermionOrBosonBox, wx.HORIZONTAL)
+        self.fitMethodFermion = wx.RadioButton(fermionOrBosonBox, label="Fermion")
+        self.fitMethodBoson = wx.RadioButton(fermionOrBosonBox, label="Boson")
         self.Bind(wx.EVT_RADIOBUTTON, self.FermionFitChosen, id=self.fitMethodFermion.GetId())
         self.Bind(wx.EVT_RADIOBUTTON, self.BosonFitChosen, id=self.fitMethodBoson.GetId())
+        fermionOrBosonBoxSizer.Add(self.fitMethodFermion, flag=wx.ALL, border=5)
+        fermionOrBosonBoxSizer.Add(self.fitMethodBoson, flag=wx.ALL, border=5)
 
-        wx.StaticText(panel, pos=(20,210) , size=(100, 25), label = 'AOI: (x,y)->(x,y)')
-        self.AOI1 = wx.TextCtrl(panel, pos=(130,210) , size=(35, 25), value='200')
-        self.AOI2 = wx.TextCtrl(panel, pos=(165,210) , size=(35, 25), value='300')
-        self.AOI3 = wx.TextCtrl(panel, pos=(200,210) , size=(40, 25), value='800')
-        self.AOI4 = wx.TextCtrl(panel, pos=(240,210) , size=(40, 25), value='900')
+        settingBoxSizer.Add(fermionOrBosonBoxSizer, flag=wx.ALL | wx.EXPAND, border = 5)
 
+        aoiBox = wx.StaticBox(settingBox, label='AOI')
+        aoiBoxSizer = wx.StaticBoxSizer(aoiBox, wx.VERTICAL)
+        aoiText = wx.StaticText(aoiBox, label = 'AOI: (x,y)->(x,y)')
+        aoiBoxSizer.Add(aoiText, flag=wx.ALL, border=5)
+
+        hbox11 = wx.BoxSizer(wx.HORIZONTAL)
+        self.AOI1 = wx.TextCtrl(aoiBox, value='200', size=(40,22))
+        self.AOI2 = wx.TextCtrl(aoiBox, value='300', size=(40,22))
+        self.AOI3 = wx.TextCtrl(aoiBox, value='800', size=(40,22))
+        self.AOI4 = wx.TextCtrl(aoiBox, value='900', size=(40,22))
+        hbox11.Add(self.AOI1, flag=wx.ALL, border=2)
+        hbox11.Add(self.AOI2, flag=wx.ALL, border=2)
+        hbox11.Add(self.AOI3, flag=wx.ALL, border=2)
+        hbox11.Add(self.AOI4, flag=wx.ALL, border=2)
+        aoiBoxSizer.Add(hbox11, flag=wx.EXPAND|wx.ALL, border=5)
         
+        settingBoxSizer.Add(aoiBoxSizer, flag=wx.ALL | wx.EXPAND, border=5)
 
-        showImgButton = wx.Button(panel, pos=(140, 240), size = (90, 40), label = 'Fit Image')
+        paramBox = wx.StaticBox(settingBox, label='Parameters')
+        paramBoxSizer = wx.StaticBoxSizer(paramBox, wx.VERTICAL)
+
+        hbox21 = wx.BoxSizer(wx.HORIZONTAL)
+        st8 = wx.StaticText(paramBox, label = 'Time of Flight(ms)')
+        self.tof = wx.TextCtrl(paramBox, value='3', size=(50,22))
+        hbox21.Add(st8, flag=wx.ALL, border=5)
+        hbox21.Add(self.tof, flag=wx.ALL, border=5)
+        paramBoxSizer.Add(hbox21, flag=wx.ALL, border=0)
+
+
+        st9 = wx.StaticText(paramBox, label = 'Trapping Frequency(Hz)')
+        paramBoxSizer.Add(st9, flag=wx.ALL, border=5)
+        
+        hbox22 = wx.BoxSizer(wx.HORIZONTAL)
+        st10 = wx.StaticText(paramBox, label = 'Axial  ')
+        self.omegaAxial = wx.TextCtrl(paramBox, value='200')
+        hbox23 = wx.BoxSizer(wx.HORIZONTAL)
+        st11 = wx.StaticText(paramBox,label = 'Radial')
+        self.omegaRadial = wx.TextCtrl(paramBox, value='250')
+        
+        
+        hbox22.Add(st10, flag=wx.ALL, border=5)
+        hbox22.Add(self.omegaRadial, flag=wx.ALL, border=5)
+        hbox23.Add(st11, flag=wx.ALL, border=5)
+        hbox23.Add(self.omegaAxial, flag=wx.ALL, border=5)
+
+        paramBoxSizer.Add(hbox22, flag=wx.ALL|wx.EXPAND, border=0)
+        paramBoxSizer.Add(hbox23, flag=wx.ALL|wx.EXPAND, border=0)
+
+        settingBoxSizer.Add(paramBoxSizer, flag=wx.ALL | wx.EXPAND, border=5)
+        hbox.Add(settingBoxSizer, 1, wx.ALL ,  10)
+
+
+        ###############################
+        fittingBox = wx.StaticBox(panel, label = 'Fitting')
+        fittingBoxSizer = wx.StaticBoxSizer(fittingBox, wx.VERTICAL)
+
+        showImgButton = wx.Button(fittingBox,  label = 'Fit Image')
         showImgButton.Bind(wx.EVT_BUTTON, self.showImg)
-        autoButton = wx.Button(panel, pos=(10,580), size=(250,60), label = 'Run automatically')
-        autoButton.Bind(wx.EVT_BUTTON, self.startAutoRun)
-        autoButton.SetFont(font)
+        fittingBoxSizer.Add(showImgButton, flag=wx.ALL|wx.EXPAND, border=5)
 
-        #Fitting result
-        block2 = wx.StaticText(panel, pos=(10,300), size=(100, 25), label='Fitting Result')
-        block2.SetFont(font)
-        wx.StaticText(panel, pos=(20,340), size=(100, 25), label='Gaussian Fit')
-        wx.StaticText(panel, pos=(20,370), size=(100, 25), label='Center at')
-        self.gCenter = wx.TextCtrl(panel, pos=(140,370), size=(100, 25), value='', style=wx.TE_READONLY)
-        wx.StaticText(panel, pos=(20,400), size=(100, 25), label='Sigma is')
-        self.gSigma = wx.TextCtrl(panel, pos=(140,400), size=(100, 25), value='', style=wx.TE_READONLY)
         
-        self.pLabel = wx.StaticText(panel, pos=(20,430), size=(100, 25), label='Boson Fit')
-        self.pText1 = wx.StaticText(panel, pos=(20,460), size=(100, 25), label='Thermal Size')
-        self.pWidth1 = wx.TextCtrl(panel, pos=(140,460), size=(100, 25), value='', style=wx.TE_READONLY)
-        self.pText2 = wx.StaticText(panel, pos=(20,490), size=(100, 25), label='Condensate Size')
-        self.pWidth2 = wx.TextCtrl(panel, pos=(140,490), size=(100, 25), value='', style=wx.TE_READONLY)
-        self.becFractionLabel = wx.StaticText(panel, pos=(20,520), size=(120, 25), label='BEC Fraction')
-        self.becFraction = wx.TextCtrl(panel, pos=(140,520), size=(150, 25), value='', style=wx.TE_READONLY)
+        self.autoButton = wx.Button(fittingBox, label = 'Auto Fit')
+        self.autoButton.Bind(wx.EVT_BUTTON, self.startAutoRun)
+        fittingBoxSizer.Add(self.autoButton, flag=wx.ALL|wx.EXPAND, border=5)
 
-        self.fLabel = wx.StaticText(panel, pos=(20,430), size=(100, 25), label='Fermion Fit')
-        self.fText1 = wx.StaticText(panel, pos=(20,460), size=(100, 25), label='(Rx, Ry)')
-        self.fWidth = wx.TextCtrl(panel, pos=(140,460), size=(100, 25), value='', style=wx.TE_READONLY)
-        self.fText2 = wx.StaticText(panel, pos=(20,490), size=(150, 25), label='q(=mu*beta)')
-        self.fq = wx.TextCtrl(panel, pos=(140,490), size=(150, 25), value='', style=wx.TE_READONLY)
-        self.tOverTFLabel = wx.StaticText(panel, pos=(20,520), size=(120, 25), label='T/T_F')
-        self.tOverTF = wx.TextCtrl(panel, pos=(140,520), size=(150, 25), value='', style=wx.TE_READONLY)
-        wx.StaticText(panel, pos=(20,550), size=(100, 25), label='Atom# by int')
-        # wx.StaticText(panel, pos=(420,350), size=(100, 25), label='By integration')
-        self.atomNumberInt = wx.TextCtrl(panel, pos=(140,550), size=(100, 25), value='', style=wx.TE_READONLY)
 
-######### single shoot functions ############
-        block3 = wx.StaticText(panel, pos=(420,20), size=(100, 25), label='Single Shot')
-        block3.SetFont(font)
-        block4 = wx.StaticText(panel, pos=(420,55), size=(100, 25), label='Set parameters')
-        block4.SetFont(font)
+#         #Fitting result
+        
+        fittingResult = wx.StaticBox(fittingBox, label='Fitting Result')
+        fittingResultSizer = wx.StaticBoxSizer(fittingResult, wx.VERTICAL)
 
-        #set input
-        wx.StaticText(panel, pos=(420,90) , size=(50, 25), label = 'Time of Flight')
-        self.tof = wx.TextCtrl(panel, pos=(540,90) , size=(50, 25), value='3')
-        wx.StaticText(panel, pos=(590,90) , size=(30, 25), label = 'ms')
+        gaussResult = wx.StaticBox(fittingBox, label='Gaussian Fit')
+        gaussResultBox = wx.StaticBoxSizer(gaussResult, wx.VERTICAL)
 
-        wx.StaticText(panel, pos=(420,130) , size=(200, 30), label = 'Trapping Frequency')
-        wx.StaticText(panel, pos=(440,160) , size=(50, 30), label = 'Axial')
-        self.omegaAxial = wx.TextCtrl(panel, pos=(540,160) , size=(50, 30), value='200')
-        wx.StaticText(panel, pos=(590,160) , size=(60, 25), label = '*2pi Hz')
-        wx.StaticText(panel, pos=(440,190) , size=(50, 30), label = 'Radial')
-        self.omegaRadial = wx.TextCtrl(panel, pos=(540,190) , size=(50, 30), value='250')
-        wx.StaticText(panel, pos=(590,190) , size=(60, 25), label = '*2pi Hz')
+        hbox121 = wx.BoxSizer(wx.HORIZONTAL)
+        st5 = wx.StaticText(fittingBox, label='Center at')
+        self.gCenter = wx.TextCtrl(fittingBox, value='', style=wx.TE_READONLY)
+        hbox121.Add(st5, flag=wx.ALL, border=5)
+        hbox121.Add(self.gCenter, flag=wx.ALL, border=0)
+
+        hbox122 = wx.BoxSizer(wx.HORIZONTAL)
+        st6 = wx.StaticText(fittingBox, label='Sigma')
+        self.gSigma = wx.TextCtrl(fittingBox, value='', style=wx.TE_READONLY)
+        hbox122.Add(st6, flag=wx.ALL, border=5)
+        hbox122.Add(self.gSigma, flag=wx.ALL, border=0)
+
+        hbox126 = wx.BoxSizer(wx.HORIZONTAL)
+        st7 = wx.StaticText(fittingBox, label='Atom#')
+        self.atomNumberInt = wx.TextCtrl(fittingBox, value='', style=wx.TE_READONLY)
+        hbox126.Add(st7, flag=wx.LEFT | wx.TOP, border=5)
+        hbox126.Add(self.atomNumberInt, flag=wx.LEFT | wx.TOP, border=0)
+
+        hbox130 = wx.BoxSizer(wx.HORIZONTAL)
+        st12 = wx.StaticText(fittingBox, label='Temperature(nK)')
+        self.gTemperature = wx.TextCtrl(fittingBox, value='', style=wx.TE_READONLY)
+        hbox130.Add(st12, flag=wx.ALL, border=5)
+        hbox130.Add(self.gTemperature, flag=wx.ALL, border=0) 
+
+        gaussResultBox.Add(hbox121, flag=wx.ALL, border=5)
+        gaussResultBox.Add(hbox122, flag=wx.ALL, border=5)
+        gaussResultBox.Add(hbox126, flag=wx.ALL, border=5)
+        gaussResultBox.Add(hbox130, flag=wx.ALL, border=5)
+        fittingResultSizer.Add(gaussResultBox, flag=wx.ALL|wx.EXPAND, border=5)
+
+        self.fermionResult = wx.StaticBox(fittingBox, label='Fermion Fit')
+        fermionResultBox = wx.StaticBoxSizer(self.fermionResult, wx.VERTICAL)
+
+        hbox127 = wx.BoxSizer(wx.HORIZONTAL)
+        self.fText1 = wx.StaticText(fittingBox, label='Size')
+        self.fWidth = wx.TextCtrl(fittingBox, value='', style=wx.TE_READONLY)
+        hbox128 = wx.BoxSizer(wx.HORIZONTAL)
+        self.fText2 = wx.StaticText(fittingBox, label='Fugacity(=mu*beta)')
+        self.fq = wx.TextCtrl(fittingBox, value='', style=wx.TE_READONLY)
+        hbox129 = wx.BoxSizer(wx.HORIZONTAL)
+        self.tOverTFLabel = wx.StaticText(fittingBox, label='T/T_F')
+        self.tOverTF = wx.TextCtrl(fittingBox, value='', style=wx.TE_READONLY)
         
-        
-        singleShootButton = wx.Button(panel, pos=(420, 230), size = (200, 25), label = 'Extract Scientific Properties')
-        singleShootButton.Bind(wx.EVT_BUTTON, self.singleShoot)
-        
-        #atom number
-        block5 = wx.StaticText(panel, pos=(420,295), size=(100, 25), label='Output Values')
-        block5.SetFont(font)
-        
-        self.atomNumberChemLabel = wx.StaticText(panel, pos=(420,380), size=(100, 25), label='By chemical potential')
-        self.atomNumberChem = wx.TextCtrl(panel, pos=(570,380), size=(100, 25), value='', style=wx.TE_READONLY)
-        #temperature
-        wx.StaticText(panel, pos=(420,420), size=(100, 25), label='Temperature')
-        self.gTemperature = wx.TextCtrl(panel, pos=(420,450), size=(100, 25), value='', style=wx.TE_READONLY)
-        wx.StaticText(panel, pos=(520,450), size=(100, 25), label='nK (from Gaussian fit)')
-        # self.fTemperature = wx.TextCtrl(panel, pos=(420,480), size=(100, 25), value='', style=wx.TE_READONLY)
-        # self.fTempLabel = wx.StaticText(panel, pos=(520,480), size=(100, 25), label='nK (from Fermion fit)')
-       
-######## save fitting result ##############
-        self.saveFermionButton = wx.Button(panel, pos=(420, 580), size = (160, 25), label = 'Save fermion results')
-        self.saveFermionButton.Bind(wx.EVT_BUTTON, self.saveFermionResult)
-        self.saveBosonButton = wx.Button(panel, pos=(420, 580), size = (160, 25), label = 'Save boson results')
-        self.saveBosonButton.Bind(wx.EVT_BUTTON, self.saveBosonResult)
-        cleanButton = wx.Button(panel, pos=(420, 610), size = (200, 25), label = 'Remove all saved data')
+        hbox127.Add(self.fText1, flag=wx.LEFT | wx.TOP, border=5)
+        hbox127.Add(self.fWidth, flag=wx.LEFT | wx.TOP, border=5)
+        hbox128.Add(self.fText2, flag=wx.LEFT | wx.TOP, border=5)
+        hbox128.Add(self.fq, flag=wx.LEFT | wx.TOP, border=5)
+        hbox129.Add(self.tOverTFLabel, flag=wx.LEFT | wx.TOP, border=5)
+        hbox129.Add(self.tOverTF, flag=wx.LEFT | wx.TOP, border=5)
+
+        fermionResultBox.Add(hbox127, flag=wx.LEFT | wx.TOP, border=5)
+        fermionResultBox.Add(hbox128, flag=wx.LEFT | wx.TOP, border=5)
+        fermionResultBox.Add(hbox129, flag=wx.LEFT | wx.TOP, border=5)
+        fittingResultSizer.Add(fermionResultBox, flag=wx.ALL|wx.EXPAND, border=5)
+
+        # bosonResult = wx.StaticBox(fittingBox, label='Boson Fit')
+        # bosonResultBox = wx.StaticBoxSizer(bosonResult, wx.VERTICAL)
+
+        # hbox123 = wx.BoxSizer(wx.HORIZONTAL)
+        # self.pText1 = wx.StaticText(fittingBox, label='Thermal Size')
+        # self.pWidth1 = wx.TextCtrl(fittingBox, value='', style=wx.TE_READONLY)
+        # hbox124 = wx.BoxSizer(wx.HORIZONTAL)
+        # self.pText2 = wx.StaticText(fittingBox, label='Condensate Size')
+        # self.pWidth2 = wx.TextCtrl(fittingBox, value='', style=wx.TE_READONLY)
+        # hbox125 = wx.BoxSizer(wx.HORIZONTAL)
+        # self.becFractionLabel = wx.StaticText(fittingBox, label='BEC Fraction')
+        # self.becFraction = wx.TextCtrl(fittingBox, value='', style=wx.TE_READONLY)
+
+        # hbox123.Add(self.pText1, flag=wx.LEFT | wx.TOP, border=5)
+        # hbox123.Add(self.pWidth1, flag=wx.LEFT | wx.TOP, border=5)
+        # hbox124.Add(self.pText2, flag=wx.LEFT | wx.TOP, border=5)
+        # hbox124.Add(self.pWidth2, flag=wx.LEFT | wx.TOP, border=5)
+        # hbox125.Add(self.becFractionLabel, flag=wx.LEFT | wx.TOP, border=5)
+        # hbox125.Add(self.becFraction, flag=wx.LEFT | wx.TOP, border=5)
+        # bosonResultBox.Add(hbox123, flag=wx.LEFT | wx.TOP, border=5)
+        # bosonResultBox.Add(hbox124, flag=wx.LEFT | wx.TOP, border=5)
+        # bosonResultBox.Add(hbox125, flag=wx.LEFT | wx.TOP, border=5)
+
+        # fittingResultSizer.Add(bosonResultBox, flag=wx.ALL|wx.EXPAND, border=5)
+
+
+
+        fittingBoxSizer.Add(fittingResultSizer, flag=wx.ALL|wx.EXPAND, border=5)
+
+
+        dataBox = wx.StaticBox(fittingBox, label='Save Data')
+        dataBoxSizer = wx.StaticBoxSizer(dataBox, wx.VERTICAL)
+
+
+        self.saveFermionButton = wx.Button(fittingBox,  label = 'Save Above Results')
+        self.saveFermionButton.Bind(wx.EVT_BUTTON, self.saveResult)
+        cleanButton = wx.Button(fittingBox,  label = 'Remove all saved data')
         cleanButton.Bind(wx.EVT_BUTTON, self.cleanData)
 
+        dataBoxSizer.Add(self.saveFermionButton, flag=wx.ALL|wx.EXPAND, border=5)
+        dataBoxSizer.Add(cleanButton, flag=wx.ALL|wx.EXPAND, border=5)
+
+        fittingBoxSizer.Add(dataBoxSizer, flag=wx.ALL|wx.EXPAND, border=5)
+        
+        hbox.Add(fittingBoxSizer, 2, wx.ALL|wx.EXPAND ,  10)
+  
+
 ######## multiple shoots functions ############
-        block6 = wx.StaticText(panel, pos=(820,20), size=(100, 25), label='Multiple Shots')
-    	block6.SetFont(font)
+        listFitBox = wx.StaticBox(panel, label='List Fit')
+        listFitBoxSizer = wx.StaticBoxSizer(listFitBox, wx.VERTICAL)
 
-        block7 = wx.StaticText(panel, pos=(820,60), size=(100, 25), label='Read Data')
-        block7.SetFont(font)
-        readButton = wx.Button(panel, pos=(820, 100), size = (140, 25), label = 'Read saved data')
+        readDataBox = wx.StaticBox(listFitBox, label='Read data')
+        readDataBoxSizer = wx.StaticBoxSizer(readDataBox, wx.HORIZONTAL)
+        readButton = wx.Button(listFitBox, label = 'Read saved data')
         readButton.Bind(wx.EVT_BUTTON, self.readData)
-        self.dataReadedText = wx.TextCtrl(panel, pos=(970,100), size=(150, 25), value='input: 0', style=wx.TE_READONLY)
+        self.dataReadedText = wx.TextCtrl(listFitBox,value='input: 0', style=wx.TE_READONLY)
+        readDataBoxSizer.Add(readButton, flag=wx.LEFT | wx.TOP, border=5)
+        readDataBoxSizer.Add(self.dataReadedText, 1, flag=wx.LEFT | wx.TOP | wx.EXPAND, border=5)
+        listFitBoxSizer.Add(readDataBoxSizer, flag=wx.ALL|wx.EXPAND, border=5)
 
-
-        block8 = wx.StaticText(panel, pos=(820,160), size=(100, 25), label='Output Values')
-        block8.SetFont(font)
-        fitListButton = wx.Button(panel, pos=(820, 200), size = (200, 25), label = 'List Data Fit')
+        fitListButton = wx.Button(listFitBox, label = 'List Data Fit')
         fitListButton.Bind(wx.EVT_BUTTON, self.fitListData)
-        wx.StaticText(panel, pos=(850,230) , size=(50, 30), label = 'Temperature')
-        self.fitTempText = wx.TextCtrl(panel, pos=(940,230), size=(110, 25), style=wx.TE_READONLY)
-        wx.StaticText(panel, pos=(1060,230), size=(30, 25), label='nK')
-        # wx.StaticText(panel, pos=(910,230) , size=(50, 30), label = 'rho0')
-        # self.fitrho0Text = wx.TextCtrl(panel, pos=(990,230), size=(50, 25), style=wx.TE_READONLY)
-        # wx.StaticText(panel, pos=(1050,230) , size=(30, 25), label = 'um')
-        # fitTrapFreqButton = wx.Button(panel, pos=(700, 260), size = (200, 25), label = 'List Data Fit')
-        # fitTrapFreqButton.Bind(wx.EVT_BUTTON, self.fitListData)
-        wx.StaticText(panel, pos=(850,260) , size=(50, 30), label = 'Axial')
-        self.fitTrapAxialFreqText = wx.TextCtrl(panel, pos=(940,260), size=(50, 25), style=wx.TE_READONLY)
-        wx.StaticText(panel, pos=(1000,260) , size=(60, 25), label = '*2pi Hz')
-        wx.StaticText(panel, pos=(850,290) , size=(50, 30), label = 'Radial')
-        self.fitTrapRadialFreqText = wx.TextCtrl(panel, pos=(940,290), size=(50, 25), style=wx.TE_READONLY)
-        wx.StaticText(panel, pos=(1000,290) , size=(60, 25), label = '*2pi Hz')
-        #
+        listFitBoxSizer.Add(fitListButton, flag=wx.ALL|wx.EXPAND, border=5)
 
-######## draw figures ############
-        block9 = wx.StaticText(panel, pos=(820,350), size=(100, 25), label='Draw Figures')
-        block9.SetFont(font)
-        drawAtomNumberButton = wx.Button(panel, pos=(820, 390), size = (200, 25), label = 'Draw atom number figure')
-        drawAtomNumberButton.Bind(wx.EVT_BUTTON, self.drawAtomNumber)
+        listFitResultBox = wx.StaticBox(listFitBox, label='List Fit Result')
+        listFitResultBoxSizer = wx.StaticBoxSizer(listFitResultBox, wx.VERTICAL)
+        hbox33 = wx.BoxSizer(wx.HORIZONTAL)
+        st13 = wx.StaticText(listFitResultBox,label = 'Temperature(nK)')
+        self.fitTempText = wx.TextCtrl(listFitResultBox, style=wx.TE_READONLY)
+        st14 = wx.StaticText(listFitResultBox,label = 'Trapping Frequency(Hz)')
+        hbox34 = wx.BoxSizer(wx.HORIZONTAL)
+        st15 = wx.StaticText(listFitResultBox, label = 'Axial  ')
+        self.fitTrapAxialFreqText = wx.TextCtrl(listFitResultBox, style=wx.TE_READONLY)
+        hbox35 = wx.BoxSizer(wx.HORIZONTAL)
+        st16 = wx.StaticText(listFitResultBox, label = 'Radial')
+        self.fitTrapRadialFreqText = wx.TextCtrl(listFitResultBox, style=wx.TE_READONLY)
+        
+        hbox33.Add(st13, flag=wx.ALL, border=5)
+        hbox33.Add(self.fitTempText, flag=wx.ALL, border=5)
+        listFitResultBoxSizer.Add(hbox33, flag=wx.ALL, border=0)
+        listFitResultBoxSizer.Add(st14, flag=wx.ALL, border=5)
+        hbox34.Add(st15, flag=wx.ALL, border=5)
+        hbox34.Add(self.fitTrapAxialFreqText, flag=wx.ALL, border=0)
+        listFitResultBoxSizer.Add(hbox34, flag=wx.ALL, border=5)
+        hbox35.Add(st16, flag=wx.ALL, border=5)
+        hbox35.Add(self.fitTrapRadialFreqText, flag=wx.ALL, border=5)
+        listFitResultBoxSizer.Add(hbox35, flag=wx.ALL, border=0)
 
-        block10 = wx.StaticText(panel, pos=(820,450), size=(200, 25), label='Recent Atom Number List')
-        block10.SetFont(font)
-        self.recentAtomNumberInt = wx.TextCtrl(panel, pos=(820,490), size=(140, 180), style=wx.TE_READONLY | wx.TE_MULTILINE | wx.HSCROLL)
-        # self.recentAtomNumberChem = wx.TextCtrl(panel, pos=(850,490), size=(150, 180), style=wx.TE_READONLY | wx.TE_MULTILINE | wx.HSCROLL)
-     
+        listFitBoxSizer.Add(listFitResultBoxSizer, flag=wx.ALL|wx.EXPAND, border=5)
 
+        hbox.Add(listFitBoxSizer, 2, wx.ALL|wx.EXPAND, 10)
+
+# ######## show image on screen ############
+        
+        # vbox4 = wx.BoxSizer(wx.VERTICAL)
+        # centerImage = wx.Image('../data/1.jpg', wx.BITMAP_TYPE_ANY)
+        # self.imageBitmap = wx.StaticBitmap(self, wx.ID_ANY, wx.BitmapFromImage(centerImage))
+        # # vbox4.Add(centerImage, flag=wx.LEFT | wx.TOP, border=5)
+
+        # hbox.Add(vbox4, proportion=1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=20)
+
+
+        panel.SetSizer(hbox)
  #####################################################    
 
     def chooseFile(self, e):
@@ -216,51 +342,34 @@ class ImageUI(wx.Frame):
 
         dialog.Destroy()
 
-    def test(self, e):
-        print "Test for watchdog"
 
     def FermionFitChosen(self, e):
-        print "Fermion Fit"
-        self.pLabel.Hide()
-        self.pText1.Hide()
-        self.pWidth1.Hide()
-        self.pText2.Hide()
-        self.pWidth2.Hide()
-        self.atomNumberChemLabel.Hide()
-        self.atomNumberChem.Hide()
-        self.fLabel.Show()
-        self.fText1.Show()
-        self.fWidth.Show()
-        self.fText2.Show()
-        self.fq.Show()
-        # self.fTempLabel.Show()
-        # self.fTemperature.Show()
-        self.tOverTF.Show()
-        self.tOverTFLabel.Show()
-        self.saveFermionButton.Show()
-        self.saveBosonButton.Hide()
+        print "Mode: Fermion Fit"
+        self.cleanValue()
+        self.fermionResult.SetLabel('Fermion Fit Result')
+        self.fText1.SetLabel('Size')
+        self.fText2.SetLabel('Fugacity(=mu*beta)')
+        self.tOverTFLabel.SetLabel('T/T_F')
 
     def BosonFitChosen(self, e):
 
-        print "Boson Fit"
-        self.pLabel.Show()
-        self.pText1.Show()
-        self.pWidth1.Show()
-        self.pText2.Show()
-        self.pWidth2.Show()
-        self.atomNumberChemLabel.Show()
-        self.atomNumberChem.Show()
-        self.fLabel.Hide()
-        self.fText1.Hide()
-        self.fWidth.Hide()
-        self.fText2.Hide()
-        self.fq.Hide()
-        # self.fTempLabel.Hide()
-        # self.fTemperature.Hide()
-        self.tOverTF.Hide()
-        self.tOverTFLabel.Hide()
-        self.saveFermionButton.Hide()
-        self.saveBosonButton.Show()
+        print "Mode: Boson Fit"
+        self.cleanValue()
+        self.fermionResult.SetLabel('Boson Fit Result')
+        self.fText1.SetLabel('Thermal Size')
+        self.fText2.SetLabel('BEC Size')
+        self.tOverTFLabel.SetLabel('BEC fraction')
+
+    def cleanValue(self):
+        self.fWidth.SetValue('')
+        self.fq.SetValue('')
+        self.tOverTF.SetValue('')
+        self.gCenter.SetValue('')
+        self.gSigma.SetValue('')
+        self.atomNumberInt.SetValue('')
+        self.gTemperature.SetValue('')
+
+        
 
     def showImg(self, e):
 
@@ -311,9 +420,11 @@ class ImageUI(wx.Frame):
         self.AOIImage = atomImage[yTop:yBottom,xLeft:xRight]
         ## view fit result
 
-        print "Gaussian Fit"
+        print "Start Gaussian Fit..."
         self.gaussionParams = fitData(self.AOIImage, gaussionDistribution)
         """x0, y0, a, b, amplitude, offset"""
+        plotParam = [self.gaussionParams[0], self.gaussionParams[1], self.gaussionParams[2],self.gaussionParams[3]]
+
         self.gaussionParams[0] += xLeft
         self.gaussionParams[1] += yTop
         self.offset = self.gaussionParams[5]
@@ -323,7 +434,7 @@ class ImageUI(wx.Frame):
         y = np.arange(yTop, yBottom, 1)
         
         x0, y0, a, b, amplitude, offset = self.gaussionParams
-        print "redraw gaussian image"
+        print "Create Gaussian Fit Image..."
         # gaussianFitImage = self.gVals[2]*np.exp(-0.5*(((X-self.gVals[0][0])/self.gVals[1][0])**2+((Y-self.gVals[0][1])/self.gVals[1][1])**2))+self.gVals[3]
         size = np.shape(self.AOIImage)
         coordinates = np.meshgrid(x, y)
@@ -338,8 +449,10 @@ class ImageUI(wx.Frame):
         N_int = atomNumber(self.AOIImage, self.offset)
         self.atomNumberInt.SetValue(str("%.0f" % N_int))
 
+        plotStr = [str("Atom#: %.3fm" % (N_int/1000000))]
+
         if self.fitMethodFermion.GetValue():
-            print "fermion Fit"
+            print "Start Fermion Fit..."
             self.fermionParams = fitData(self.AOIImage, fermionDistribution)
             """x0, y0, a, b, amplitude, offset, q"""
             
@@ -353,66 +466,36 @@ class ImageUI(wx.Frame):
             self.fq.SetValue('%.2f'%(self.fermionParams[6]))
             tovertf = TOverTF(self.fermionParams[6])
             self.tOverTF.SetValue(str('%.3f' % tovertf ))
+            plotStr.append(str('T/T_F=%.3f' % tovertf ))
 
-            print "redraw fermion image"
+            print "Create Fermion Fit Image..."
             fermionFitImage = fermionDistribution(coordinates, x0, y0, a, b, amplitude, offset, q).reshape(xRight-xLeft,yBottom-yTop)
-       
-<<<<<<< HEAD
-            atomImagePlot([atomImage[yTop:yBottom,xLeft:xRight], gaussianFitImage, fermionFitImage], ['original image', 'gaussianFitImage', 'fermion fit'], [N_int/1000000, tovertf])
-=======
-            atomImagePlot([atomImage[yTop:yBottom, xLeft:xRight], gaussianFitImage, fermionFitImage], ['original image', 'gaussianFitImage', 'fermion fit'], [N_int/1000000, tovertf])
->>>>>>> 5ac4c33fa47cdcf714f2d4a0fdd75246ec880057
+    
+            atomImagePlot([atomImage[yTop:yBottom,xLeft:xRight], gaussianFitImage, fermionFitImage], ['original', 'gaussian', 'fermion'], plotParam, plotStr)
+
         
         elif self.fitMethodBoson.GetValue():
-            print "boson Fit"
+            print "Start Boson Fit..."
             self.bosonParams = fitData(self.AOIImage, bosonDistribution)
             print self.bosonParams
             self.bosonParams[0] += xLeft
             self.bosonParams[1] += yTop
             x0, y0, a, b, amplitudeC, offset, amplitudeT, Ca, Cb = self.bosonParams
 
-            print "redraw boson image"
+            print "Create Boson Fit Image..."
 
             bosonFitImage = bosonDistribution(coordinates, x0, y0, a, b, amplitudeC, offset, amplitudeT, Ca, Cb).reshape(xRight-xLeft,yBottom-yTop)
-            atomImagePlot([atomImage[yTop:yBottom,xLeft:xRight], gaussianFitImage, bosonFitImage], ['original image','gaussian fit','boson fit'], [N_int/1000000, amplitudeC/(amplitudeT+amplitudeC)] )
+            atomImagePlot([atomImage[yTop:yBottom,xLeft:xRight], gaussianFitImage, bosonFitImage], ['original','gaussian','boson'],  plotParam, plotStr)
 
 
        
 
 
-            self.pWidth1.SetValue('( %.0f'%self.bosonParams[2] + ' , %.0f )'%self.bosonParams[3])
-            self.pWidth2.SetValue('( %.0f'%(1/np.sqrt(self.bosonParams[7])) + ' , %.0f )'%(1/np.sqrt(self.bosonParams[8])))
-            self.becFraction.SetValue('%0.2f'%(amplitudeC/(amplitudeT+amplitudeC)))       
+            self.fWidth.SetValue('( %.0f'%self.bosonParams[2] + ' , %.0f )'%self.bosonParams[3])
+            self.fq.SetValue('( %.0f'%(1/np.sqrt(self.bosonParams[7])) + ' , %.0f )'%(1/np.sqrt(self.bosonParams[8])))
+            self.tOverTF.SetValue('%0.2f'%(amplitudeC/(amplitudeT+amplitudeC)))       
 
-
-      
-
-        
-
-        # atomImagePlot([atomImage, gaussianFitImage,parabolicFitImage], ['original image','gaussian fit','parabolic fit'] )
-        
-        
-
-    def startAutoRun(self, e):
-        print "Begin to watch new files"
-        self.observer.start()
-
-
-    def autoRun(self, e):
-        self.showImg(e)
-        self.singleShoot(e)
-        if self.fitMethodFermion.GetValue():
-            self.saveFermionResult(e)
-        elif self.fitMethodBoson.GetValue():
-            self.saveBosonResult(e)
-        self.recentAtomNumberInt.AppendText(self.atomNumberInt.GetValue() + '\n')
-        # self.recentAtomNumberChem.AppendText(self.atomNumberChem.GetValue() + '\n')
-
-
-
-    def singleShoot(self, e):
-            ## Atom number using chemical potential
-
+            plotStr.append(str('Condensate Fraction:%0.2f'%(amplitudeC/(amplitudeT+amplitudeC))) )
         ToF = float(self.tof.GetValue()) / 1000
         omegaAxial = float(self.omegaAxial.GetValue()) * np.pi * 2
         omegaRadial = float(self.omegaRadial.GetValue()) * np.pi * 2
@@ -423,28 +506,10 @@ class ImageUI(wx.Frame):
         elif self.fitMethodFermion.GetValue():
             atom = "Li"
 
-        # mu = chemicalPotential(ToF, omegaRadial * 2 * np.pi, self.pVals[1][1]* pixelToDistance)
-        #print 'mu%f'%(mu*1E30)
-        # U0 = effectiveInteraction(scatteringLength)
-        #print 'U0%f'%(U0*1E50)
-        # N_chem = atomNumberFit(mu, omegaRadial * 2 * np.pi, omegaAxial * 2 * np.pi, U0)
-        
-        # self.atomNumberChem.SetValue(str("%.0f" % N_chem))
-        
-
-        
-
         if self.fitMethodFermion.GetValue():
             Rx = self.fermionParams[2] * pixelToDistance
             Ry = self.fermionParams[3] * pixelToDistance
             self.q = self.fermionParams[6]
-
-            
-            
-
-            # self.fTmp = fermionTemperature(ToF, omegaAxial, omegaRadial, Rx, Ry, self.qX, self.qY)
-            # self.fTemperature.SetValue(str('( %.0f' % (self.fTmp[0]*1E9)) + ' , ' + '%.0f )' % (self.fTmp[1]*1E9))
-
 
 
         gSigmaX = self.gaussionParams[2] * pixelToDistance
@@ -454,6 +519,48 @@ class ImageUI(wx.Frame):
         
         self.gTemperature.SetValue(str('( %.0f' % (self.gTmp[0]*1E9)) + ' , ' + '%.0f )' % (self.gTmp[1]*1E9))
         
+        print "Finished Fitting."
+        
+
+        # atomImagePlot([atomImage, gaussianFitImage,parabolicFitImage], ['original image','gaussian fit','parabolic fit'] )
+        
+        
+
+    def startAutoRun(self, e):
+        if self.autoRunning == False:
+            print "Start Auto Run.. Begin Watching File Changes in the Folder..."
+            self.autoButton.SetLabel('Auto Fitting... Watching File Changes in the Folder...')
+            
+            self.observer.start()
+            # self.observer.join()
+            self.autoRunning = True
+        elif self.autoRunning == True:
+            print "Stop Watching Folder."
+            self.autoButton.SetLabel('Auto Fit')
+            self.observer.stop()
+            # self.observer.
+            # self.observer.restart()
+            self.autoRunning = False
+
+
+
+    def autoRun(self, e):
+        self.showImg(e)
+        if self.fitMethodFermion.GetValue():
+            self.saveFermionResult(e)
+        elif self.fitMethodBoson.GetValue():
+            self.saveBosonResult(e)
+        # self.recentAtomNumberInt.AppendText(self.atomNumberInt.GetValue() + '\n')
+        # self.recentAtomNumberChem.AppendText(self.atomNumberChem.GetValue() + '\n')
+
+
+
+    def saveResult(self, e):
+        if self.fitMethodFermion.GetValue():
+            self.saveFermionResult(e)
+        elif self.fitMethodBoson.GetValue():
+            self.saveBosonResult(e)
+
     def saveBosonResult(self, e):
         f = open("../boson_data.txt", "a")
         f.writelines(self.filename + ' , ' + self.tof.GetValue() + ' , '\
@@ -576,7 +683,5 @@ class FigurePanel(wx.Panel):
 if __name__ == '__main__':
   
     app = wx.App()
-    ui = ImageUI(None, title='Image Analyze')
-    # ui.LiOriginalFigure.drawFigure()
-    # ui.LiOriginalFigure.draw()
+    ui = ImageUI(None, title='Image Analysis v1.0')
     app.MainLoop()
