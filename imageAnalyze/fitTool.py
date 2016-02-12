@@ -3,6 +3,13 @@ import numpy as np
 from scipy.optimize import curve_fit
 import operator
 from polylog import *
+import signal
+
+def signal_handler(signum, frame):
+	print "Timed Out!"
+	raise Exception("Timed out!")
+
+
 
 def initialGauss(data):
 	size = np.shape(data)
@@ -52,21 +59,50 @@ def bosonDistribution(coordinates, x0, y0, a, b, amplitudeC, offset, amplitudeT,
 	dist = thermalPart + condensatePart + offset
 	return dist.ravel()
 
-def fitData(data, distribution):
-	size = np.shape(data)
-	guess = initialGauss(data)
-	if distribution == fermionDistribution:
-		guess.append(1)
-	elif distribution == bosonDistribution:
-		guess.append(1)
-		guess.append(0.1)
-		guess.append(0.1)
-
-	coordinates = np.meshgrid(range(size[0]), range(size[1]))
+def fitData(data, distribution, mode):
+	if mode == "Single":
+		signal.signal(signal.SIGALRM, signal_handler)
+		signal.alarm(15)   # Ten seconds
+		try:
+			size = np.shape(data)
+			guess = initialGauss(data)
+			
+			if distribution == fermionDistribution:
+				guess.append(1)
+			elif distribution == bosonDistribution:
+				guess.append(1)
+				guess.append(0.1)
+				guess.append(0.1)
+			
+			coordinates = np.meshgrid(range(size[0]), range(size[1]))
+			
+			params, Cover = curve_fit(distribution, coordinates, data.ravel(), p0=guess)
+			signal.alarm(0) 
+			
+			return params
+		except Exception, msg:
+			print "Timed out! This fitting looks much slower than usual. Please check your AOI!" 
 	
-	params, Cover = curve_fit(distribution, coordinates, data.ravel(), p0=guess)
-
-	return params
+	
+	
+	else:
+		size = np.shape(data)
+		guess = initialGauss(data)
+		
+		if distribution == fermionDistribution:
+			guess.append(1)
+		elif distribution == bosonDistribution:
+			guess.append(1)
+			guess.append(0.1)
+			guess.append(0.1)
+		
+		coordinates = np.meshgrid(range(size[0]), range(size[1]))
+		
+		params, Cover = curve_fit(distribution, coordinates, data.ravel(), p0=guess)
+		
+		
+		return params
+	
 
 def f(x):
     # if x == 0:
@@ -85,7 +121,7 @@ def radioDistribution(data, center, sigma):
 	y1 = min(center[1], size[1]-center[1])/float(sigma[1])
 	r0 = min(x1, y1)
 
-	lr = int(0.9*r0)
+	lr = int(0.95*r0)
 	od_list = []
 
 	for r in np.arange(0, lr, 0.01):

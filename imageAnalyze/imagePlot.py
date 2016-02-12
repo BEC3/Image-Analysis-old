@@ -9,11 +9,11 @@ def atomImagePlot(data, caption, gParam, strParam):
     plt.close('all')
     ldata = len(data)
     fig = plt.figure(figsize=(15, 8))
-    print gParam
+    
     center = gParam[0:2]
     sigma = gParam[2:4]
-    print center
-    print sigma
+    
+    
 
 
     for r in range(ldata):

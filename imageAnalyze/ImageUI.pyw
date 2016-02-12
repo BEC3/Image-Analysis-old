@@ -33,10 +33,16 @@ class ImageUI(wx.Frame):
         self.fVals = None
         self.AOIImage = None
         self.AOI = None
+        self.xLeft = None
+        self.xRight = None
+        self.yBottom = None
+        self.yTop = None
         # self.Bind(wx.EVT_PAINT, self.OnPaint)
 
         self.q = None
-        
+        self.gaussionParams = None
+        self.fermionParams = None
+        self.bosonParams = None
 
         self.filename = None
         self.Tmp = None
@@ -153,7 +159,7 @@ class ImageUI(wx.Frame):
         fittingBoxSizer = wx.StaticBoxSizer(fittingBox, wx.VERTICAL)
 
         showImgButton = wx.Button(fittingBox,  label = 'Fit Image')
-        showImgButton.Bind(wx.EVT_BUTTON, self.showImg)
+        showImgButton.Bind(wx.EVT_BUTTON, self.fitImage)
         fittingBoxSizer.Add(showImgButton, flag=wx.ALL|wx.EXPAND, border=5)
 
         
@@ -369,157 +375,168 @@ class ImageUI(wx.Frame):
         self.atomNumberInt.SetValue('')
         self.gTemperature.SetValue('')
 
-        
 
-    def showImg(self, e):
-
+    def fitImage(self, e):
         print "Begin to fit..."
+        self.readImage()
+        self.showImg(e)
 
-        # Read Image
-        path = self.imageFolderPath.GetValue()
-        if not path:
-            print "Wrong Folder!"
-            return None
-            # self.alert
-        self.filename = self.filenameText.GetValue()
-
-        
-        if not self.filename:
-            latest = max(glob.iglob(path + '*.aia'), key=os.path.getctime)
-            s = latest
-            s0 = s.split('/')
-            self.filename = s0[-1]
-        else:
-            s = path + self.filename
-
-
-
-        
+    def readImage(self):
         plotMin = 0.0
         plotMax = 0.3
-
-
-        xLeft = int(self.AOI1.GetValue())
-        # print xLeft
-        xRight = int(self.AOI3.GetValue())
-        # print xRight
-        yTop = int(self.AOI2.GetValue())
-        # print yTop
-        yBottom = int(self.AOI4.GetValue())
-        # print yBottom
-        self.AOI = [[xLeft,yTop],[xRight,yBottom]]
-
-        absorbImg = readData(s)
-
-
-        ### Mapping from absorption to atom column density
-        atomImage = -np.log(absorbImg)
-        # print sort(np.array(atomImage))
-
-        ### Restrict to the are of interest
-        self.AOIImage = atomImage[yTop:yBottom,xLeft:xRight]
-        ## view fit result
-
-        print "Start Gaussian Fit..."
-        self.gaussionParams = fitData(self.AOIImage, gaussionDistribution)
-        """x0, y0, a, b, amplitude, offset"""
-        plotParam = [self.gaussionParams[0], self.gaussionParams[1], self.gaussionParams[2],self.gaussionParams[3]]
-
-        self.gaussionParams[0] += xLeft
-        self.gaussionParams[1] += yTop
-        self.offset = self.gaussionParams[5]
-
-       
-        x = np.arange(xLeft, xRight, 1)
-        y = np.arange(yTop, yBottom, 1)
         
-        x0, y0, a, b, amplitude, offset = self.gaussionParams
-        print "Create Gaussian Fit Image..."
-        # gaussianFitImage = self.gVals[2]*np.exp(-0.5*(((X-self.gVals[0][0])/self.gVals[1][0])**2+((Y-self.gVals[0][1])/self.gVals[1][1])**2))+self.gVals[3]
-        size = np.shape(self.AOIImage)
-        coordinates = np.meshgrid(x, y)
+        try:
+            # Read Image
+            path = self.imageFolderPath.GetValue()
+            if not path:
+                print "Wrong Folder!"
+                return None
+                # self.alert
+            self.filename = self.filenameText.GetValue()
 
-        gaussianFitImage = gaussionDistribution(coordinates, x0, y0, a, b, amplitude, offset).reshape(xRight-xLeft,yBottom-yTop)
-
-        
-        # atomImagePlot([atomImage, gaussianFitImage], ['original image', 'gaussianFitImage'] )
-        self.gCenter.SetValue('( %.0f'%x0 + ' , %.0f )'%y0)
-        self.gSigma.SetValue('( %.0f'%a + ' , %.0f )'%b)
-        
-        N_int = atomNumber(self.AOIImage, self.offset)
-        self.atomNumberInt.SetValue(str("%.0f" % N_int))
-
-        plotStr = [str("Atom#: %.3fm" % (N_int/1000000))]
-
-        if self.fitMethodFermion.GetValue():
-            print "Start Fermion Fit..."
-            self.fermionParams = fitData(self.AOIImage, fermionDistribution)
-            """x0, y0, a, b, amplitude, offset, q"""
             
+            if not self.filename:
+                latest = max(glob.iglob(path + '*.aia'), key=os.path.getctime)
+                s = latest
+                s0 = s.split('/')
+                self.filename = s0[-1]
+            else:
+                s = path + self.filename
+
+            self.xLeft = int(self.AOI1.GetValue())
+            # print xLeft
+            self.xRight = int(self.AOI3.GetValue())
+            # print xRight
+            self.yTop = int(self.AOI2.GetValue())
+            # print yTop
+            self.yBottom = int(self.AOI4.GetValue())
+            # print yBottom
+            self.AOI = [[self.xLeft,self.yTop],[self.xRight,self.yBottom]]
+
+            absorbImg = readData(s)
+
+            atomImage = -np.log(absorbImg)
+            ### Restrict to the are of interest
+            self.AOIImage = atomImage[self.yTop:self.yBottom,self.xLeft:self.xRight]
+
+        except Exception:
+            print "Failed to read this image."
+            
+
+        ## view fit result
+    def showImg(self, e): 
+        if not self.autoRunning:
+            mode = "Single"
+        else:
+            mode = "Auto"
+        try:
+
+            print "Start Gaussian Fit..."
+
+
+            self.gaussionParams = fitData(self.AOIImage, gaussionDistribution, mode)
+            """x0, y0, a, b, amplitude, offset"""
+
+            plotParam = [self.gaussionParams[0], self.gaussionParams[1], self.gaussionParams[2],self.gaussionParams[3]]
+            self.gaussionParams[0] += self.xLeft
+            self.gaussionParams[1] += self.yTop
+            self.offset = self.gaussionParams[5]
+            
+            
+           
+            x = np.arange(self.xLeft, self.xRight, 1)
+            
+            y = np.arange(self.yTop, self.yBottom, 1)
+            
+            x0, y0, a, b, amplitude, offset = self.gaussionParams
+            print "Create Gaussian Fit Image..."
+            # gaussianFitImage = self.gVals[2]*np.exp(-0.5*(((X-self.gVals[0][0])/self.gVals[1][0])**2+((Y-self.gVals[0][1])/self.gVals[1][1])**2))+self.gVals[3]
+            size = np.shape(self.AOIImage)
+            coordinates = np.meshgrid(x, y)
+
+            gaussianFitImage = gaussionDistribution(coordinates, x0, y0, a, b, amplitude, offset).reshape(self.xRight-self.xLeft,self.yBottom-self.yTop)
+
+            
+            # atomImagePlot([atomImage, gaussianFitImage], ['original image', 'gaussianFitImage'] )
+            self.gCenter.SetValue('( %.0f'%x0 + ' , %.0f )'%y0)
+            self.gSigma.SetValue('( %.0f'%a + ' , %.0f )'%b)
+            
+            N_int = atomNumber(self.AOIImage, self.offset)
+            self.atomNumberInt.SetValue(str("%.0f" % N_int))
+
+            plotStr = [str("Atom#: %.3fm" % (N_int/1000000))]
+
+            if self.fitMethodFermion.GetValue():
+                print "Start Fermion Fit..."
+                self.fermionParams = fitData(self.AOIImage, fermionDistribution, mode)
+                """x0, y0, a, b, amplitude, offset, q"""
+                
+            
+                self.fermionParams[0] += self.xLeft
+                self.fermionParams[1] += self.yTop
+
+                x0, y0, a, b, amplitude, offset, q = self.fermionParams
+                self.foffset = self.fermionParams[5]
+                self.fWidth.SetValue('( %.0f'%(self.fermionParams[2]) + ' , %.0f )'%(self.fermionParams[3]))
+                self.fq.SetValue('%.2f'%(self.fermionParams[6]))
+                tovertf = TOverTF(self.fermionParams[6])
+                self.tOverTF.SetValue(str('%.3f' % tovertf ))
+                plotStr.append(str('T/T_F=%.3f' % tovertf ))
+
+                print "Create Fermion Fit Image..."
+                fermionFitImage = fermionDistribution(coordinates, x0, y0, a, b, amplitude, offset, q).reshape(self.xRight-self.xLeft,self.yBottom-self.yTop)
         
-            self.fermionParams[0] += xLeft
-            self.fermionParams[1] += yTop
+                atomImagePlot([self.AOIImage, gaussianFitImage, fermionFitImage], ['original', 'gaussian', 'fermion'], plotParam, plotStr)
 
-            x0, y0, a, b, amplitude, offset, q = self.fermionParams
-            self.foffset = self.fermionParams[5]
-            self.fWidth.SetValue('( %.0f'%(self.fermionParams[2]) + ' , %.0f )'%(self.fermionParams[3]))
-            self.fq.SetValue('%.2f'%(self.fermionParams[6]))
-            tovertf = TOverTF(self.fermionParams[6])
-            self.tOverTF.SetValue(str('%.3f' % tovertf ))
-            plotStr.append(str('T/T_F=%.3f' % tovertf ))
+            
+            elif self.fitMethodBoson.GetValue():
+                print "Start Boson Fit..."
+                self.bosonParams = fitData(self.AOIImage, bosonDistribution, mode)
+                print self.bosonParams
+                self.bosonParams[0] += self.xLeft
+                self.bosonParams[1] += self.yTop
+                x0, y0, a, b, amplitudeC, offset, amplitudeT, Ca, Cb = self.bosonParams
 
-            print "Create Fermion Fit Image..."
-            fermionFitImage = fermionDistribution(coordinates, x0, y0, a, b, amplitude, offset, q).reshape(xRight-xLeft,yBottom-yTop)
-    
-            atomImagePlot([atomImage[yTop:yBottom,xLeft:xRight], gaussianFitImage, fermionFitImage], ['original', 'gaussian', 'fermion'], plotParam, plotStr)
-
-        
-        elif self.fitMethodBoson.GetValue():
-            print "Start Boson Fit..."
-            self.bosonParams = fitData(self.AOIImage, bosonDistribution)
-            print self.bosonParams
-            self.bosonParams[0] += xLeft
-            self.bosonParams[1] += yTop
-            x0, y0, a, b, amplitudeC, offset, amplitudeT, Ca, Cb = self.bosonParams
-
-            print "Create Boson Fit Image..."
-
-            bosonFitImage = bosonDistribution(coordinates, x0, y0, a, b, amplitudeC, offset, amplitudeT, Ca, Cb).reshape(xRight-xLeft,yBottom-yTop)
-            atomImagePlot([atomImage[yTop:yBottom,xLeft:xRight], gaussianFitImage, bosonFitImage], ['original','gaussian','boson'],  plotParam, plotStr)
+                print "Create Boson Fit Image..."
+                plotStr.append(str('Condensate Fraction:%0.2f'%(amplitudeC/(amplitudeT+amplitudeC))) )
+                bosonFitImage = bosonDistribution(coordinates, x0, y0, a, b, amplitudeC, offset, amplitudeT, Ca, Cb).reshape(self.xRight-self.xLeft,self.yBottom-self.yTop)
+                atomImagePlot([self.AOIImage, gaussianFitImage, bosonFitImage], ['original','gaussian','boson'],  plotParam, plotStr)
 
 
-       
+           
 
 
-            self.fWidth.SetValue('( %.0f'%self.bosonParams[2] + ' , %.0f )'%self.bosonParams[3])
-            self.fq.SetValue('( %.0f'%(1/np.sqrt(self.bosonParams[7])) + ' , %.0f )'%(1/np.sqrt(self.bosonParams[8])))
-            self.tOverTF.SetValue('%0.2f'%(amplitudeC/(amplitudeT+amplitudeC)))       
+                self.fWidth.SetValue('( %.0f'%self.bosonParams[2] + ' , %.0f )'%self.bosonParams[3])
+                self.fq.SetValue('( %.0f'%(1/np.sqrt(self.bosonParams[7])) + ' , %.0f )'%(1/np.sqrt(self.bosonParams[8])))
+                self.tOverTF.SetValue('%0.2f'%(amplitudeC/(amplitudeT+amplitudeC)))       
 
-            plotStr.append(str('Condensate Fraction:%0.2f'%(amplitudeC/(amplitudeT+amplitudeC))) )
-        ToF = float(self.tof.GetValue()) / 1000
-        omegaAxial = float(self.omegaAxial.GetValue()) * np.pi * 2
-        omegaRadial = float(self.omegaRadial.GetValue()) * np.pi * 2
+            
+            ToF = float(self.tof.GetValue()) / 1000
+            omegaAxial = float(self.omegaAxial.GetValue()) * np.pi * 2
+            omegaRadial = float(self.omegaRadial.GetValue()) * np.pi * 2
+            
+            atom = ""
+            if self.fitMethodBoson.GetValue():
+                atom = "Na"
+            elif self.fitMethodFermion.GetValue():
+                atom = "Li"
+            
+            if self.fitMethodFermion.GetValue():
+                Rx = self.fermionParams[2] * pixelToDistance
+                Ry = self.fermionParams[3] * pixelToDistance
+                self.q = self.fermionParams[6]
 
-        atom = ""
-        if self.fitMethodBoson.GetValue():
-            atom = "Na"
-        elif self.fitMethodFermion.GetValue():
-            atom = "Li"
-
-        if self.fitMethodFermion.GetValue():
-            Rx = self.fermionParams[2] * pixelToDistance
-            Ry = self.fermionParams[3] * pixelToDistance
-            self.q = self.fermionParams[6]
-
-
-        gSigmaX = self.gaussionParams[2] * pixelToDistance
-        gSigmaY = self.gaussionParams[3] * pixelToDistance
-
-        self.gTmp = temperatureSingleGaussianFit(ToF, gSigmaX, gSigmaY, omegaAxial, omegaRadial, atom) 
-        
-        self.gTemperature.SetValue(str('( %.0f' % (self.gTmp[0]*1E9)) + ' , ' + '%.0f )' % (self.gTmp[1]*1E9))
-        
-        print "Finished Fitting."
+            
+            gSigmaX = self.gaussionParams[2] * pixelToDistance
+            gSigmaY = self.gaussionParams[3] * pixelToDistance
+            
+            self.gTmp = temperatureSingleGaussianFit(ToF, gSigmaX, gSigmaY, omegaAxial, omegaRadial, atom) 
+            
+            self.gTemperature.SetValue(str('( %.0f' % (self.gTmp[0]*1E9)) + ' , ' + '%.0f )' % (self.gTmp[1]*1E9))
+            
+            print "Finished Fitting."
+        except Exception:
+            print 'Sorry. Fitting Failed.'
         
 
         # atomImagePlot([atomImage, gaussianFitImage,parabolicFitImage], ['original image','gaussian fit','parabolic fit'] )
@@ -527,31 +544,30 @@ class ImageUI(wx.Frame):
         
 
     def startAutoRun(self, e):
-        if self.autoRunning == False:
-            print "Start Auto Run.. Begin Watching File Changes in the Folder..."
-            self.autoButton.SetLabel('Auto Fitting... Watching File Changes in the Folder...')
-            
-            self.observer.start()
-            # self.observer.join()
-            self.autoRunning = True
-        elif self.autoRunning == True:
-            print "Stop Watching Folder."
-            self.autoButton.SetLabel('Auto Fit')
-            self.observer.stop()
-            # self.observer.
-            # self.observer.restart()
-            self.autoRunning = False
+        try:
+            if self.autoRunning == False:
+                print "Start Auto Run.. Begin Watching File Changes in the Folder..."
+                self.autoButton.SetLabel('Auto Fitting... Watching File Changes in the Folder...')
+                
+                self.observer.start()
+                # self.observer.join()
+                self.autoRunning = True
+            elif self.autoRunning == True:
+                print "Stop Watching Folder."
+                self.autoButton.SetLabel('Auto Fit')
+                self.observer.stop()
+                # self.observer.
+                # self.observer.restart()
+                self.autoRunning = False
+        except:
+            print "Sorry. There is some problem about auto fit. Please just restart the program."
+
 
 
 
     def autoRun(self, e):
-        self.showImg(e)
-        if self.fitMethodFermion.GetValue():
-            self.saveFermionResult(e)
-        elif self.fitMethodBoson.GetValue():
-            self.saveBosonResult(e)
-        # self.recentAtomNumberInt.AppendText(self.atomNumberInt.GetValue() + '\n')
-        # self.recentAtomNumberChem.AppendText(self.atomNumberChem.GetValue() + '\n')
+        self.fitImage(e)
+        self.saveResult(e)
 
 
 
