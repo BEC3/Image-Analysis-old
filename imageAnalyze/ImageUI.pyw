@@ -87,7 +87,7 @@ class ImageUI(wx.Frame):
         hbox12.Add(chooseFileButton, flag=wx.ALL, border=5)
         fileBoxSizer.Add(hbox12, flag=wx.ALL| wx.EXPAND, border=0)
 
-        settingBoxSizer.Add(fileBoxSizer, flag=wx.TOP | wx.LEFT | wx.EXPAND, border = 8)
+        settingBoxSizer.Add(fileBoxSizer, flag=wx.ALL| wx.EXPAND, border = 5)
 
 
 
@@ -100,7 +100,7 @@ class ImageUI(wx.Frame):
         fermionOrBosonBoxSizer.Add(self.fitMethodFermion, flag=wx.ALL, border=5)
         fermionOrBosonBoxSizer.Add(self.fitMethodBoson, flag=wx.ALL, border=5)
 
-        settingBoxSizer.Add(fermionOrBosonBoxSizer, flag=wx.TOP | wx.LEFT | wx.EXPAND, border = 8)
+        settingBoxSizer.Add(fermionOrBosonBoxSizer, flag=wx.ALL| wx.EXPAND, border = 5)
 
         aoiBox = wx.StaticBox(panel, label='AOI')
         aoiBoxSizer = wx.StaticBoxSizer(aoiBox, wx.VERTICAL)
@@ -118,7 +118,7 @@ class ImageUI(wx.Frame):
         hbox11.Add(self.AOI4, flag=wx.ALL, border=2)
         aoiBoxSizer.Add(hbox11, flag=wx.EXPAND|wx.ALL, border=5)
         
-        settingBoxSizer.Add(aoiBoxSizer, flag=wx.TOP | wx.LEFT | wx.EXPAND, border=8)
+        settingBoxSizer.Add(aoiBoxSizer, flag=wx.ALL| wx.EXPAND, border=5)
 
         paramBox = wx.StaticBox(panel, label='Parameters')
         paramBoxSizer = wx.StaticBoxSizer(paramBox, wx.VERTICAL)
@@ -150,7 +150,7 @@ class ImageUI(wx.Frame):
         paramBoxSizer.Add(hbox22, flag=wx.ALL|wx.EXPAND, border=0)
         paramBoxSizer.Add(hbox23, flag=wx.ALL|wx.EXPAND, border=0)
 
-        settingBoxSizer.Add(paramBoxSizer, flag=wx.TOP | wx.LEFT | wx.EXPAND, border=8)
+        settingBoxSizer.Add(paramBoxSizer, flag=wx.ALL| wx.EXPAND, border=5)
         hbox.Add(settingBoxSizer, 1, wx.ALL ,  10)
 
 
@@ -158,45 +158,45 @@ class ImageUI(wx.Frame):
         fittingBox = wx.StaticBox(panel, label = 'Fitting')
         fittingBoxSizer = wx.StaticBoxSizer(fittingBox, wx.VERTICAL)
 
-        showImgButton = wx.Button(fittingBox,  label = 'Fit Image')
+        showImgButton = wx.Button(panel,  label = 'Fit Image')
         showImgButton.Bind(wx.EVT_BUTTON, self.fitImage)
         fittingBoxSizer.Add(showImgButton, flag=wx.ALL|wx.EXPAND, border=5)
 
         
-        self.autoButton = wx.Button(fittingBox, label = 'Auto Fit')
+        self.autoButton = wx.Button(panel, label = 'Auto Fit')
         self.autoButton.Bind(wx.EVT_BUTTON, self.startAutoRun)
         fittingBoxSizer.Add(self.autoButton, flag=wx.ALL|wx.EXPAND, border=5)
 
 
 #         #Fitting result
         
-        fittingResult = wx.StaticBox(fittingBox, label='Fitting Result')
+        fittingResult = wx.StaticBox(panel, label='Fitting Result')
         fittingResultSizer = wx.StaticBoxSizer(fittingResult, wx.VERTICAL)
 
-        gaussResult = wx.StaticBox(fittingBox, label='Gaussian Fit')
+        gaussResult = wx.StaticBox(panel, label='Gaussian Fit')
         gaussResultBox = wx.StaticBoxSizer(gaussResult, wx.VERTICAL)
 
         hbox121 = wx.BoxSizer(wx.HORIZONTAL)
-        st5 = wx.StaticText(fittingBox, label='Center at')
-        self.gCenter = wx.TextCtrl(fittingBox, value='', style=wx.TE_READONLY)
+        st5 = wx.StaticText(panel, label='Center at')
+        self.gCenter = wx.TextCtrl(panel, value='', style=wx.TE_READONLY)
         hbox121.Add(st5, flag=wx.ALL, border=5)
         hbox121.Add(self.gCenter, flag=wx.ALL, border=0)
 
         hbox122 = wx.BoxSizer(wx.HORIZONTAL)
-        st6 = wx.StaticText(fittingBox, label='Sigma')
-        self.gSigma = wx.TextCtrl(fittingBox, value='', style=wx.TE_READONLY)
+        st6 = wx.StaticText(panel, label='Sigma')
+        self.gSigma = wx.TextCtrl(panel, value='', style=wx.TE_READONLY)
         hbox122.Add(st6, flag=wx.ALL, border=5)
         hbox122.Add(self.gSigma, flag=wx.ALL, border=0)
 
         hbox126 = wx.BoxSizer(wx.HORIZONTAL)
-        st7 = wx.StaticText(fittingBox, label='Atom#')
-        self.atomNumberInt = wx.TextCtrl(fittingBox, value='', style=wx.TE_READONLY)
+        st7 = wx.StaticText(panel, label='Atom#')
+        self.atomNumberInt = wx.TextCtrl(panel, value='', style=wx.TE_READONLY)
         hbox126.Add(st7, flag=wx.LEFT | wx.TOP, border=5)
         hbox126.Add(self.atomNumberInt, flag=wx.LEFT | wx.TOP, border=0)
 
         hbox130 = wx.BoxSizer(wx.HORIZONTAL)
-        st12 = wx.StaticText(fittingBox, label='Temperature(nK)')
-        self.gTemperature = wx.TextCtrl(fittingBox, value='', style=wx.TE_READONLY)
+        st12 = wx.StaticText(panel, label='Temperature(nK)')
+        self.gTemperature = wx.TextCtrl(panel, value='', style=wx.TE_READONLY)
         hbox130.Add(st12, flag=wx.ALL, border=5)
         hbox130.Add(self.gTemperature, flag=wx.ALL, border=0) 
 
@@ -206,18 +206,18 @@ class ImageUI(wx.Frame):
         gaussResultBox.Add(hbox130, flag=wx.ALL, border=5)
         fittingResultSizer.Add(gaussResultBox, flag=wx.ALL|wx.EXPAND, border=5)
 
-        self.fermionResult = wx.StaticBox(fittingBox, label='Fermion Fit')
+        self.fermionResult = wx.StaticBox(panel, label='Fermion Fit')
         fermionResultBox = wx.StaticBoxSizer(self.fermionResult, wx.VERTICAL)
 
         hbox127 = wx.BoxSizer(wx.HORIZONTAL)
-        self.fText1 = wx.StaticText(fittingBox, label='Size')
-        self.fWidth = wx.TextCtrl(fittingBox, value='', style=wx.TE_READONLY)
+        self.fText1 = wx.StaticText(panel, label='Size')
+        self.fWidth = wx.TextCtrl(panel, value='', style=wx.TE_READONLY)
         hbox128 = wx.BoxSizer(wx.HORIZONTAL)
-        self.fText2 = wx.StaticText(fittingBox, label='Fugacity(=mu*beta)')
-        self.fq = wx.TextCtrl(fittingBox, value='', style=wx.TE_READONLY)
+        self.fText2 = wx.StaticText(panel, label='Fugacity(=mu*beta)')
+        self.fq = wx.TextCtrl(panel, value='', style=wx.TE_READONLY)
         hbox129 = wx.BoxSizer(wx.HORIZONTAL)
-        self.tOverTFLabel = wx.StaticText(fittingBox, label='T/T_F')
-        self.tOverTF = wx.TextCtrl(fittingBox, value='', style=wx.TE_READONLY)
+        self.tOverTFLabel = wx.StaticText(panel, label='T/T_F')
+        self.tOverTF = wx.TextCtrl(panel, value='', style=wx.TE_READONLY)
         
         hbox127.Add(self.fText1, flag=wx.LEFT | wx.TOP, border=5)
         hbox127.Add(self.fWidth, flag=wx.LEFT | wx.TOP, border=5)
@@ -261,13 +261,13 @@ class ImageUI(wx.Frame):
         fittingBoxSizer.Add(fittingResultSizer, flag=wx.ALL|wx.EXPAND, border=5)
 
 
-        dataBox = wx.StaticBox(fittingBox, label='Save Data')
+        dataBox = wx.StaticBox(panel, label='Save Data')
         dataBoxSizer = wx.StaticBoxSizer(dataBox, wx.VERTICAL)
 
 
-        self.saveFermionButton = wx.Button(fittingBox,  label = 'Save Above Results')
+        self.saveFermionButton = wx.Button(panel,  label = 'Save Above Results')
         self.saveFermionButton.Bind(wx.EVT_BUTTON, self.saveResult)
-        cleanButton = wx.Button(fittingBox,  label = 'Remove all saved data')
+        cleanButton = wx.Button(panel,  label = 'Remove all saved data')
         cleanButton.Bind(wx.EVT_BUTTON, self.cleanData)
 
         dataBoxSizer.Add(self.saveFermionButton, flag=wx.ALL|wx.EXPAND, border=5)
@@ -282,31 +282,31 @@ class ImageUI(wx.Frame):
         listFitBox = wx.StaticBox(panel, label='List Fit')
         listFitBoxSizer = wx.StaticBoxSizer(listFitBox, wx.VERTICAL)
 
-        readDataBox = wx.StaticBox(listFitBox, label='Read data')
+        readDataBox = wx.StaticBox(panel, label='Read data')
         readDataBoxSizer = wx.StaticBoxSizer(readDataBox, wx.HORIZONTAL)
-        readButton = wx.Button(listFitBox, label = 'Read saved data')
+        readButton = wx.Button(panel, label = 'Read saved data')
         readButton.Bind(wx.EVT_BUTTON, self.readData)
-        self.dataReadedText = wx.TextCtrl(listFitBox,value='input: 0', style=wx.TE_READONLY)
+        self.dataReadedText = wx.TextCtrl(panel,value='input: 0', style=wx.TE_READONLY)
         readDataBoxSizer.Add(readButton, flag=wx.LEFT | wx.TOP, border=5)
         readDataBoxSizer.Add(self.dataReadedText, 1, flag=wx.LEFT | wx.TOP | wx.EXPAND, border=5)
         listFitBoxSizer.Add(readDataBoxSizer, flag=wx.ALL|wx.EXPAND, border=5)
 
-        fitListButton = wx.Button(listFitBox, label = 'List Data Fit')
+        fitListButton = wx.Button(panel, label = 'List Data Fit')
         fitListButton.Bind(wx.EVT_BUTTON, self.fitListData)
         listFitBoxSizer.Add(fitListButton, flag=wx.ALL|wx.EXPAND, border=5)
 
-        listFitResultBox = wx.StaticBox(listFitBox, label='List Fit Result')
+        listFitResultBox = wx.StaticBox(panel, label='List Fit Result')
         listFitResultBoxSizer = wx.StaticBoxSizer(listFitResultBox, wx.VERTICAL)
         hbox33 = wx.BoxSizer(wx.HORIZONTAL)
-        st13 = wx.StaticText(listFitResultBox,label = 'Temperature(nK)')
-        self.fitTempText = wx.TextCtrl(listFitResultBox, style=wx.TE_READONLY)
-        st14 = wx.StaticText(listFitResultBox,label = 'Trapping Frequency(Hz)')
+        st13 = wx.StaticText(panel,label = 'Temperature(nK)')
+        self.fitTempText = wx.TextCtrl(panel, style=wx.TE_READONLY)
+        st14 = wx.StaticText(panel,label = 'Trapping Frequency(Hz)')
         hbox34 = wx.BoxSizer(wx.HORIZONTAL)
-        st15 = wx.StaticText(listFitResultBox, label = 'Axial  ')
-        self.fitTrapAxialFreqText = wx.TextCtrl(listFitResultBox, style=wx.TE_READONLY)
+        st15 = wx.StaticText(panel, label = 'Axial  ')
+        self.fitTrapAxialFreqText = wx.TextCtrl(panel, style=wx.TE_READONLY)
         hbox35 = wx.BoxSizer(wx.HORIZONTAL)
-        st16 = wx.StaticText(listFitResultBox, label = 'Radial')
-        self.fitTrapRadialFreqText = wx.TextCtrl(listFitResultBox, style=wx.TE_READONLY)
+        st16 = wx.StaticText(panel, label = 'Radial')
+        self.fitTrapRadialFreqText = wx.TextCtrl(panel, style=wx.TE_READONLY)
         
         hbox33.Add(st13, flag=wx.ALL, border=5)
         hbox33.Add(self.fitTempText, flag=wx.ALL, border=5)
