@@ -28,8 +28,8 @@ class MyHandler(PatternMatchingEventHandler):
 		self.f(self.parent)
 		# self.showImg()
 		# os.system('python AnalyzeAIA.py')
-	def on_modified(self, event):
-		self.process(event)
+	#def on_modified(self, event):
+	#	self.process(event)
 	def on_created(self, event):
 		self.process(event)
 

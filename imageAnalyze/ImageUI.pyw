@@ -418,6 +418,7 @@ class ImageUI(wx.Frame):
             atomImage = -np.log(absorbImg)
             ### Restrict to the are of interest
             self.AOIImage = atomImage[self.yTop:self.yBottom,self.xLeft:self.xRight]
+            print "Read Image"
 
         except Exception:
             print "Failed to read this image."
@@ -429,18 +430,21 @@ class ImageUI(wx.Frame):
             mode = "Single"
         else:
             mode = "Auto"
+        #self.gaussionParams = fitData(self.AOIImage, gaussionDistribution, mode)
+        #print self.gaussionParams
         try:
 
             print "Start Gaussian Fit..."
 
-
+           
             self.gaussionParams = fitData(self.AOIImage, gaussionDistribution, mode)
             """x0, y0, a, b, amplitude, offset"""
-
+            print self.gaussionParams
             plotParam = [self.gaussionParams[0], self.gaussionParams[1], self.gaussionParams[2],self.gaussionParams[3]]
             self.gaussionParams[0] += self.xLeft
             self.gaussionParams[1] += self.yTop
             self.offset = self.gaussionParams[5]
+            self.offsetEdge = aoiEdge(self.AOIImage)
             
             
            
@@ -462,10 +466,13 @@ class ImageUI(wx.Frame):
             self.gSigma.SetValue('( %.0f'%a + ' , %.0f )'%b)
             
             N_int = atomNumber(self.AOIImage, self.offset)
-            self.atomNumberInt.SetValue(str("%.0f" % N_int))
+            N_intEdge = atomNumber(self.AOIImage, self.offsetEdge)
+            N_gaussianFit = atomNumberGaussianFit(self.gaussionParams[2],self.gaussionParams[3], self.gaussionParams[4])
+            self.atomNumberInt.SetValue(str("%.0f" % N_intEdge))
 
-            plotStr = [str("Atom#: %.3fm" % (N_int/1000000))]
-
+            plotStr = [str("Atom#(offset from fit): %.3fm" % (N_int/1000000))]
+            plotStr.append(str("Atom#(offset from edge): %.3fm" % (N_intEdge/1000000)))
+            plotStr.append(str("Atom#(from gaussfit): %.3fm" % (N_gaussianFit/1000000)))
             if self.fitMethodFermion.GetValue():
                 print "Start Fermion Fit..."
                 self.fermionParams = fitData(self.AOIImage, fermionDistribution, mode)
@@ -536,6 +543,7 @@ class ImageUI(wx.Frame):
             
             print "Finished Fitting."
         except Exception:
+
             print 'Sorry. Fitting Failed.'
         
 
@@ -550,7 +558,7 @@ class ImageUI(wx.Frame):
                 self.autoButton.SetLabel('Auto Fitting... Watching File Changes in the Folder...')
                 
                 self.observer.start()
-                # self.observer.join()
+                #self.observer.join()
                 self.autoRunning = True
             elif self.autoRunning == True:
                 print "Stop Watching Folder."
@@ -558,6 +566,7 @@ class ImageUI(wx.Frame):
                 self.observer.stop()
                 # self.observer.
                 # self.observer.restart()
+                #self.observer.join()
                 self.autoRunning = False
         except:
             print "Sorry. There is some problem about auto fit. Please just restart the program."
@@ -578,7 +587,7 @@ class ImageUI(wx.Frame):
             self.saveBosonResult(e)
 
     def saveBosonResult(self, e):
-        f = open("../boson_data.txt", "a")
+        f = open("C:\\ExperimentImages\\Image-Analysis\\boson_data.txt", "a")
         f.writelines(self.filename + ' , ' + self.tof.GetValue() + ' , '\
          # + self.omegaAxial.GetValue() + ' , ' + self.omegaRadial.GetValue() + ' , '\
          # + str(self.gVals[0][0]) + ' , ' + str(self.gVals[0][1]) + ' , ' \
@@ -590,7 +599,7 @@ class ImageUI(wx.Frame):
         f.close()
 
     def saveFermionResult(self, e):
-        f = open("../fermion_data.txt", "a")
+        f = open("C:\\ExperimentImages\\Image-Analysis\\fermion_data.txt", "a")
         
         f.writelines(self.filename + ' , ' + self.tof.GetValue() + ' , '\
          # + self.omegaAxial.GetValue() + ' , ' + self.omegaRadial.GetValue() + ' , '\
@@ -603,17 +612,17 @@ class ImageUI(wx.Frame):
 
     def cleanData(self, e):
         if self.fitMethodFermion.GetValue():
-            f = open("../fermion_data.txt", "w")
+            f = open("C:\\ExperimentImages\\Image-Analysis\\fermion_data.txt", "w")
         elif self.fitMethodBoson.GetValue():
-            f = open("../boson_data.txt", "w")
+            f = open("C:\\ExperimentImages\\Image-Analysis\\boson_data.txt", "w")
         f.close()
 
     def readData(self, e):
         if self.fitMethodFermion.GetValue():
-            f = open("../fermion_data.txt", "r")
+            f = open("C:\\ExperimentImages\\Image-Analysis\\fermion_data.txt", "r")
             self.data = f.readlines()
         elif self.fitMethodBoson.GetValue():
-            f = open("../boson_data.txt", "r")
+            f = open("C:\\ExperimentImages\\Image-Analysis\\boson_data.txt", "r")
             self.data = f.readlines()
         # f = open("../data.txt", "r")
 
@@ -654,7 +663,6 @@ class ImageUI(wx.Frame):
 
     def drawAtomNumber(self, e):
         atomNumberI = []
-        atomNumberC = []
         n = len(self.data)
         for i in self.data:
             atomNumberI.append(int(i[2]))

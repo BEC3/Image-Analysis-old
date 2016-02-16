@@ -60,9 +60,11 @@ def bosonDistribution(coordinates, x0, y0, a, b, amplitudeC, offset, amplitudeT,
 	return dist.ravel()
 
 def fitData(data, distribution, mode):
-	if mode == "Single":
+        print mode
+	if mode == "SingleXXX":
 		signal.signal(signal.SIGALRM, signal_handler)
 		signal.alarm(15)   # Ten seconds
+		print "15seconds limits"
 		try:
 			size = np.shape(data)
 			guess = initialGauss(data)
@@ -86,6 +88,7 @@ def fitData(data, distribution, mode):
 	
 	
 	else:
+                
 		size = np.shape(data)
 		guess = initialGauss(data)
 		
@@ -113,10 +116,9 @@ def f(x):
 
 
 def radioDistribution(data, center, sigma):
-	# print center
-	# print sigma
+
 	size = np.shape(data)
-	# print size
+	
 	x1 = min(center[0], size[0]-center[0])/float(sigma[0])
 	y1 = min(center[1], size[1]-center[1])/float(sigma[1])
 	r0 = min(x1, y1)

@@ -61,10 +61,23 @@ def readData(path):
 ### atom number #######
 def atomNumber(Img, offset):
     ImgCopy = copy.deepcopy(Img)
+    #return np.sum(np.sum(ImgCopy))
     ImgCopy[:] = [x - offset for x in ImgCopy]
     return np.sum(np.sum(ImgCopy))  * (pixelToDistance**2)/crossSection
+    
+def aoiEdge(Img):
+    x1 = np.average(Img[0])
+    x2 = np.average(Img[-1])
+    y1 = np.average(Img[:,0])
+    y2 = np.average(Img[:,-1])
+    out, weight = np.average(x1, x2, y1, y2)
+    return out
+    
+def atomNumberGaussianFit(sigmaX, sigmaY, amplitude):
+    return np.pi * sigmaX * sigmaY * amplitude * (pixelToDistance**2)/crossSection
 
-### fit image ###
+
+### fit image - 1d method - not using ###
 def twoDGaussianFit(data):
     """Fits a two-dimensional Gaussian, A*exp(-0.5*(((x-x0)/sigmaX)^2+((y-y0)/sigmaY)**2))+offset, to given data 
     (a numpy array) and returns the fit parameters [[x0,y0],[sigmaX,sigmaY],offset,A]. """

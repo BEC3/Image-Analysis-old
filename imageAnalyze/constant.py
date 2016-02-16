@@ -10,7 +10,7 @@ mNa = 23 * mNuc
 hbar = 1.0545718E-34
 
 pixel2number = 1
-lambdaBar = 589E-9  / (2 * np.pi)
+lambdaBar = 671E-9  / (2 * np.pi)
 crossSection = 6 * np.pi * lambdaBar ** 2
 
 scatteringLength = 2.9E-9

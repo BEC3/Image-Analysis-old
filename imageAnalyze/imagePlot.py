@@ -6,6 +6,7 @@ from fitTool import *
 # data is a list of matrix, caption is a same lenght list to descibe the image
 # it can be original image or any new fitted images
 def atomImagePlot(data, caption, gParam, strParam):
+    
     plt.close('all')
     ldata = len(data)
     fig = plt.figure(figsize=(15, 8))
@@ -45,14 +46,16 @@ def atomImagePlot(data, caption, gParam, strParam):
 
 
     plt.subplot('235')
-    plt.text(0.1,0.7,strParam[1],fontsize=20)
+    plt.text(0.1,0.7,strParam[3],fontsize=20)
     plt.axis('off')
 
     plt.subplot('236')
-    plt.text(0.1,0.7,strParam[0],fontsize=20)
+    plt.text(0,0.7,strParam[0],fontsize=20)
+    plt.text(0,0.4,strParam[1],fontsize=20)
+    plt.text(0,0.1,strParam[2],fontsize=20)
     plt.axis('off')
 
-
+    print "created fiimages"
     #fig.set_cmap('winter')
     #fig.colorbar()
     #colorbar(orientation='horizontal')
