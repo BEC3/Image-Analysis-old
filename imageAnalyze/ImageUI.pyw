@@ -11,6 +11,7 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
+
 from imagePlot import *
 from imgFunc import *
 from watchforchange import *
@@ -47,6 +48,7 @@ class ImageUI(wx.Frame):
         self.filename = None
         self.Tmp = None
         self.data = None
+        self.observer = None
         self.observer = Observer()
         self.observer.schedule(MyHandler(self.autoRun, self), path = self.imageFolderPath.GetValue())
 
@@ -320,8 +322,28 @@ class ImageUI(wx.Frame):
         listFitResultBoxSizer.Add(hbox35, flag=wx.ALL, border=0)
 
         listFitBoxSizer.Add(listFitResultBoxSizer, flag=wx.ALL|wx.EXPAND, border=5)
-
+        
         hbox.Add(listFitBoxSizer, 2, wx.ALL|wx.EXPAND, 10)
+        
+        imagesBox = wx.StaticBox(panel, label='Images')
+        imagesBoxSizer = wx.StaticBoxSizer(imagesBox, wx.VERTICAL)
+
+        
+        figure = Figure()
+        self.axes1 = figure.add_subplot(221)
+        self.canvas1 =  FigureCanvas(panel, -1, figure)
+        imagesBoxSizer.Add(self.canvas1, flag=wx.ALL|wx.EXPAND, border=5)
+        self.axes2 = figure.add_subplot(222)
+        #self.canvas2 =  FigureCanvas(panel, -1, figure)
+        #imagesBoxSizer.Add(self.canvas2, flag=wx.ALL|wx.EXPAND, border=5)
+        self.axes3 = figure.add_subplot(223)
+        #self.canvas3 =  FigureCanvas(panel, -1, figure)
+        #imagesBoxSizer.Add(self.canvas3, flag=wx.ALL|wx.EXPAND, border=5)
+        self.axes4 = figure.add_subplot(224)
+        #self.canvas4 =  FigureCanvas(panel, -1, figure)
+        #imagesBoxSizer.Add(self.canvas4, flag=wx.ALL|wx.EXPAND, border=5)
+
+        hbox.Add(imagesBoxSizer, 2, wx.ALL|wx.EXPAND, 10)
 
 # ######## show image on screen ############
         
@@ -493,9 +515,25 @@ class ImageUI(wx.Frame):
                 print "Create Fermion Fit Image..."
                 fermionFitImage = fermionDistribution(coordinates, x0, y0, a, b, amplitude, offset, q).reshape(self.xRight-self.xLeft,self.yBottom-self.yTop)
         
-                atomImagePlot([self.AOIImage, gaussianFitImage, fermionFitImage], ['original', 'gaussian', 'fermion'], plotParam, plotStr)
-
-            
+                #atomImagePlot([self.AOIImage, gaussianFitImage, fermionFitImage], ['original', 'gaussian', 'fermion'], plotParam, plotStr)
+                self.axes1.imshow(self.AOIImage, cmap='jet', aspect='auto', vmin=-1, vmax=5)
+                self.axes2.imshow(gaussianFitImage, cmap='jet', aspect='auto', vmin=-1, vmax=5)
+                self.axes3.imshow(fermionFitImage, cmap='jet', aspect='auto', vmin=-1, vmax=5)
+                #self.axes4.imshow(self.AOIImage, cmap='jet', aspect='auto', vmin=-1, vmax=5)
+                ### od distribution
+                #data = [self.AOIImage, gaussianFitImage, fermionFitImage]
+                #center = plotParam[0:2]
+                #sigma = plotParam[2:4]
+                #for k in range(3):
+                #    l = radioDistribution(data[k], center, sigma)
+                #    y.append(l)
+                #x= range(len(y[0]))
+                #originalLine,  = self.axes4.plot(x, y[0], 'g:', label='origianl')
+                #gaussianLine,  = self.axes4.plot(x, y[1], 'r--', label='gaussian')
+                #fitLine,  = self.axes4.plot(x, y[2], 'b-', label='fit')
+                #self.axes4.legend([originalLine, gaussianLine, fitLine], caption)
+                #plt.title('Density Distribution')
+                
             elif self.fitMethodBoson.GetValue():
                 print "Start Boson Fit..."
                 self.bosonParams = fitData(self.AOIImage, bosonDistribution, mode)
@@ -507,7 +545,7 @@ class ImageUI(wx.Frame):
                 print "Create Boson Fit Image..."
                 plotStr.append(str('Condensate Fraction:%0.2f'%(amplitudeC/(amplitudeT+amplitudeC))) )
                 bosonFitImage = bosonDistribution(coordinates, x0, y0, a, b, amplitudeC, offset, amplitudeT, Ca, Cb).reshape(self.xRight-self.xLeft,self.yBottom-self.yTop)
-                atomImagePlot([self.AOIImage, gaussianFitImage, bosonFitImage], ['original','gaussian','boson'],  plotParam, plotStr)
+                #atomImagePlot([self.AOIImage, gaussianFitImage, bosonFitImage], ['original','gaussian','boson'],  plotParam, plotStr)
 
 
            
@@ -556,7 +594,10 @@ class ImageUI(wx.Frame):
             if self.autoRunning == False:
                 print "Start Auto Run.. Begin Watching File Changes in the Folder..."
                 self.autoButton.SetLabel('Auto Fitting... Watching File Changes in the Folder...')
-                
+                 
+                self.observer = Observer()
+                self.observer.schedule(MyHandler(self.autoRun, self), path = self.imageFolderPath.GetValue())
+
                 self.observer.start()
                 #self.observer.join()
                 self.autoRunning = True
@@ -566,7 +607,8 @@ class ImageUI(wx.Frame):
                 self.observer.stop()
                 # self.observer.
                 # self.observer.restart()
-                #self.observer.join()
+                self.observer.join()
+                self.observer = None
                 self.autoRunning = False
         except:
             print "Sorry. There is some problem about auto fit. Please just restart the program."
