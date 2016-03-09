@@ -3,6 +3,9 @@
 import os, sys, glob
 import wx, numpy
 import matplotlib
+
+import time
+
 matplotlib.use('WXAgg')
 
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
@@ -39,6 +42,10 @@ class ImageUI(wx.Frame):
         self.yBottom = None
         self.yTop = None
         # self.Bind(wx.EVT_PAINT, self.OnPaint)
+
+        #benchmarking variables
+        self.benchmark_startTime=0
+        self.benchmark_endTime=0
 
         self.q = None
         self.gaussionParams = None
@@ -114,10 +121,10 @@ class ImageUI(wx.Frame):
         aoiBoxSizer.Add(aoiText, flag=wx.ALL, border=5)
 
         hbox11 = wx.BoxSizer(wx.HORIZONTAL)
-        self.AOI1 = wx.TextCtrl(panel, value='200', size=(40,22))
-        self.AOI2 = wx.TextCtrl(panel, value='300', size=(40,22))
-        self.AOI3 = wx.TextCtrl(panel, value='800', size=(40,22))
-        self.AOI4 = wx.TextCtrl(panel, value='900', size=(40,22))
+        self.AOI1 = wx.TextCtrl(panel, value='300', size=(40,22))
+        self.AOI2 = wx.TextCtrl(panel, value='150', size=(40,22))
+        self.AOI3 = wx.TextCtrl(panel, value='650', size=(40,22))
+        self.AOI4 = wx.TextCtrl(panel, value='500', size=(40,22))
         hbox11.Add(self.AOI1, flag=wx.ALL, border=2)
         hbox11.Add(self.AOI2, flag=wx.ALL, border=2)
         hbox11.Add(self.AOI3, flag=wx.ALL, border=2)
@@ -196,9 +203,13 @@ class ImageUI(wx.Frame):
 
         hbox126 = wx.BoxSizer(wx.HORIZONTAL)
         st7 = wx.StaticText(panel, label='Atom#')
+        st8 = wx.StaticText(panel, label='Atom#from fit')
         self.atomNumberInt = wx.TextCtrl(panel, value='', style=wx.TE_READONLY)
+        self.atomNumberIntFit = wx.TextCtrl(panel, value='', style=wx.TE_READONLY)
         hbox126.Add(st7, flag=wx.LEFT | wx.TOP, border=5)
         hbox126.Add(self.atomNumberInt, flag=wx.LEFT | wx.TOP, border=0)
+        hbox126.Add(st8, flag=wx.LEFT | wx.TOP, border=5)
+        hbox126.Add(self.atomNumberIntFit, flag=wx.LEFT | wx.TOP, border=0)
 
         hbox130 = wx.BoxSizer(wx.HORIZONTAL)
         st12 = wx.StaticText(panel, label='Temperature(nK)')
@@ -409,7 +420,10 @@ class ImageUI(wx.Frame):
 
 
     def fitImage(self, e):
-        print "Begin to fit..."
+        
+        
+        self.benchmark_startTime=time.time()
+        print "Begin to fit..."+str(self.benchmark_startTime)
         self.readImage()
         self.showImg(e)
 
@@ -447,9 +461,9 @@ class ImageUI(wx.Frame):
 
             absorbImg = readData(s)
 
-            atomImage = -np.log(absorbImg)
+            self.atomImage = -np.log(absorbImg)
             ### Restrict to the are of interest
-            self.AOIImage = atomImage[self.yTop:self.yBottom,self.xLeft:self.xRight]
+            self.AOIImage = self.atomImage[self.yTop:self.yBottom,self.xLeft:self.xRight]
             print "Read Image"
 
         except Exception:
@@ -477,7 +491,8 @@ class ImageUI(wx.Frame):
             self.gaussionParams[0] += self.xLeft
             self.gaussionParams[1] += self.yTop
             self.offset = self.gaussionParams[5]
-            self.offsetEdge = aoiEdge(self.AOIImage)
+            tempp = self.atomImage[self.yTop-1:self.yBottom+1,self.xLeft-1:self.xRight+1]
+            self.offsetEdge = aoiEdge(tempp)
             
             
            
@@ -486,26 +501,38 @@ class ImageUI(wx.Frame):
             y = np.arange(self.yTop, self.yBottom, 1)
             
             x0, y0, a, b, amplitude, offset = self.gaussionParams
+            if x0 < self.xLeft or x0 > self.xRight or y0 < self.yTop or y0 > self.yBottom:
+                print "Find the wrong center. Please change the AOI.."
+                #raise Exception
+            
+            if a > self.xRight - self.xLeft or b > self.yBottom - self.yTop:
+                print "Find the wront sigma. Please change the AOI.."
+                #raise Exception
+                
             print "Create Gaussian Fit Image..."
             
             # gaussianFitImage = self.gVals[2]*np.exp(-0.5*(((X-self.gVals[0][0])/self.gVals[1][0])**2+((Y-self.gVals[0][1])/self.gVals[1][1])**2))+self.gVals[3]
             size = np.shape(self.AOIImage)
             coordinates = np.meshgrid(x, y)
             
-            gaussianFitImage = gaussionDistribution(coordinates, x0, y0, a, b, amplitude, offset).reshape(self.xRight-self.xLeft,self.yBottom-self.yTop)
+            gaussianFitImage = gaussionDistribution(coordinates, x0, y0, a, b, amplitude, offset).reshape(self.yBottom-self.yTop,self.xRight-self.xLeft)
 
             
             # atomImagePlot([atomImage, gaussianFitImage], ['original image', 'gaussianFitImage'] )
-            self.gCenter.SetValue('( %.0f'%x0 + ' , %.0f )'%y0)
-            self.gSigma.SetValue('( %.0f'%a + ' , %.0f )'%b)
+            self.gCenter.SetValue('( %.0f'%abs(x0) + ' , %.0f )'%abs(y0))
+            self.gSigma.SetValue('( %.0f'%abs(a) + ' , %.0f )'%abs(b))
             
-            N_int = atomNumber(self.AOIImage, self.offset)
+            
+            N_int = 0#atomNumber(self.AOIImage, self.offset)
             N_intEdge = atomNumber(self.AOIImage, self.offsetEdge)
+            print "edge"
             N_gaussianFit = atomNumberGaussianFit(self.gaussionParams[2],self.gaussionParams[3], self.gaussionParams[4])
+            print "fit"
             self.atomNumberInt.SetValue(str("%.0f" % N_intEdge))
-            
-            self.axes1.imshow(self.AOIImage, cmap='jet', aspect='auto', vmin=-1, vmax=5)
-            self.axes2.imshow(gaussianFitImage, cmap='jet', aspect='auto', vmin=-1, vmax=5)
+            self.atomNumberIntFit.SetValue(str("%.0f" % N_gaussianFit))
+            print "set value"
+            self.axes1.imshow(self.AOIImage, cmap='gray_r', aspect=1, vmin=-1, vmax=1)
+            self.axes2.imshow(gaussianFitImage, cmap='gray_r', aspect=1, vmin=-1, vmax=1)
             print "1"
             for i, line in enumerate(self.axes4.lines):
                 print "2"
@@ -629,11 +656,14 @@ class ImageUI(wx.Frame):
 
             self.canvas1.draw()
             self.Update()
+            
             print "Finished Fitting."
         except Exception:
 
             print 'Sorry. Fitting Failed.'
-        
+            
+        self.benchmark_endTime=time.time()
+        print  "This took " + str(abs(self.benchmark_startTime-self.benchmark_endTime)) + " time units"
 
         # atomImagePlot([atomImage, gaussianFitImage,parabolicFitImage], ['original image','gaussian fit','parabolic fit'] )
         
@@ -705,13 +735,12 @@ class ImageUI(wx.Frame):
         f.close()
 
     def saveGaussianResult(self, e):
-        # f = open("C:\\ExperimentImages\\Image-Analysis\\fermion_data.txt", "a")
-        f = open("../gaussian_data.txt", "a")
+        f = open("C:\\ExperimentImages\\Image-Analysis\\gaussian_data.txt", "a")
         f.writelines(self.filename + '\t' + self.tof.GetValue() + '\t'\
          # + self.omegaAxial.GetValue() + ' , ' + self.omegaRadial.GetValue() + ' , '\
          + str(self.gaussionParams[0]) + '\t' + str(self.gaussionParams[1]) + '\t' \
-         + self.atomNumberInt.GetValue() + '\t' \
-         + str(self.gaussionParams[2]) + '\t' + str(self.gaussionParams[3]) + '\t' \
+         + str(self.atomNumberInt.GetValue()) + '\t' + str(self.atomNumberIntFit.GetValue()) + '\t'\
+         + str(self.gaussionParams[2]) + '\t' + str(self.gaussionParams[3]) \
          + '\n') 
         
         f.close()

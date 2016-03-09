@@ -47,31 +47,57 @@ def readData(path):
                 byteIndex+=2      
 ###  Construct the transmittance map, with an np.maximum statement to avoid dividing by zero.
     absorbImg=(imageData[0]-imageData[2])/(np.maximum(imageData[1]-imageData[2],1))
+    
+    #for row in range(rowTotal):
+    #    for col in range(colTotal):
+    #        if imageData[0][row][col] > imageData[2][row][col] and imageData[1][row][col] > imageData[2][row][col]:
+    #            absorbImg[row][col] = (imageData[0][row][col]-imageData[2][row][col])/(np.maximum(imageData[1][row][col]-imageData[2][row][col],1))
+    #        elif imageData[1][row][col] > imageData[2][row][col]:
+    #            absorbImg[row][col] = MIN_T
+    #        elif imageData[0][row][col] > imageData[2][row][col]:
+    #            absorbImg[row][col] = 1
+    #        if absorbImg[row][col] < MIN_T:
+    #            absorbImg[row][col] = MIN_T
+
+						
+     
 
 ###  Replace extremely low transmission pixels with a minimum meaningful transmission. 
-    minT = 0.01
+    minT = MIN_T
     temp = np.empty((rowTotal,colTotal))	
     temp.fill(minT)
 
-
     absorbImg = np.maximum(absorbImg,temp)
+
+    for row in range(rowTotal):    
+        for col in range(colTotal):
+            if imageData[0][row][col] > imageData[2][row][col] and imageData[1][row][col] < imageData[2][row][col]:
+                absorbImg[row][col] = 1
     return absorbImg
 
 
 ### atom number #######
 def atomNumber(Img, offset):
-    ImgCopy = copy.deepcopy(Img)
-    #return np.sum(np.sum(ImgCopy))
-    ImgCopy[:] = [x - offset for x in ImgCopy]
-    return np.sum(np.sum(ImgCopy))  * (pixelToDistance**2)/crossSection
+    #ImgCopy = copy.deepcopy(Img)
+    ##return np.sum(np.sum(ImgCopy))
+    #ImgCopy[:] = [x - offset for x in ImgCopy]
+    #return np.sum(np.sum(ImgCopy))  * (pixelToDistance**2)/crossSection
+    imgsize = np.shape(Img)
+    simplicio = np.sum(np.sum(Img)) 
+    print simplicio
+    sim2 = simplicio -offset * imgsize[0]*imgsize[1] 
+    print sim2
+    return sim2* (pixelToDistance**2)/crossSection
+    
     
 def aoiEdge(Img):
-    x1 = np.average(Img[0])
-    x2 = np.average(Img[-1])
-    y1 = np.average(Img[:,0])
-    y2 = np.average(Img[:,-1])
-    out, weight = np.average(x1, x2, y1, y2)
-    return out
+    imgsize = np.shape(Img)
+    x1 = np.sum(Img[0])
+    x2 = np.sum(Img[-1])
+    y1 = np.sum(Img[:,0])
+    y2 = np.sum(Img[:,-1])
+    out = x1+x2+y1+y2
+    return out/(2*(imgsize[0]+imgsize[1]))
     
 def atomNumberGaussianFit(sigmaX, sigmaY, amplitude):
     return np.pi * sigmaX * sigmaY * amplitude * (pixelToDistance**2)/crossSection

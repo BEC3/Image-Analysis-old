@@ -8,6 +8,7 @@ kB = 1.38E-23
 mLi = 6 * mNuc
 mNa = 23 * mNuc
 hbar = 1.0545718E-34
+MIN_T = np.exp(-5)
 
 pixel2number = 1
 lambdaBar = 671E-9  / (2 * np.pi)

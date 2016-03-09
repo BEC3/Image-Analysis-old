@@ -91,7 +91,7 @@ def fitData(data, distribution, mode):
                 
 		size = np.shape(data)
 		guess = initialGauss(data)
-		
+		print guess
 		if distribution == fermionDistribution:
 			guess.append(1)
 		elif distribution == bosonDistribution:
