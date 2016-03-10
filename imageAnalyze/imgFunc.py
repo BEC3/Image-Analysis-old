@@ -71,7 +71,7 @@ def readData(path):
 
     for row in range(rowTotal):    
         for col in range(colTotal):
-            if imageData[0][row][col] > imageData[2][row][col] and imageData[1][row][col] < imageData[2][row][col]:
+            if not imageData[0][row][col] < imageData[2][row][col] and not imageData[1][row][col] > imageData[2][row][col]:
                 absorbImg[row][col] = 1
     return absorbImg
 
@@ -92,12 +92,16 @@ def atomNumber(Img, offset):
     
 def aoiEdge(Img):
     imgsize = np.shape(Img)
-    x1 = np.sum(Img[0])
-    x2 = np.sum(Img[-1])
-    y1 = np.sum(Img[:,0])
-    y2 = np.sum(Img[:,-1])
+    #x1 = np.sum(np.sum(Img[0:3,:]))
+    #x2 = np.sum(np.sum(Img[-2:,:]))
+    #y1 = np.sum(np.sum(Img[::,0:3]))
+    #y2 = np.sum(np.sum(Img[:,-2:]))
+    x1 = np.sum(np.sum(Img[0:3,0:-3]))
+    x2 = np.sum(np.sum(Img[-3:,3:]))
+    y1 = np.sum(np.sum(Img[3:,0:3]))
+    y2 = np.sum(np.sum(Img[0:-3,-3:]))
     out = x1+x2+y1+y2
-    return out/(2*(imgsize[0]+imgsize[1]))
+    return out/(6*(imgsize[0]+imgsize[1])+36)
     
 def atomNumberGaussianFit(sigmaX, sigmaY, amplitude):
     return np.pi * sigmaX * sigmaY * amplitude * (pixelToDistance**2)/crossSection

@@ -99,7 +99,7 @@ def fitData(data, distribution, mode):
 			guess.append(0.1)
 			guess.append(0.1)
 		
-		coordinates = np.meshgrid(range(size[0]), range(size[1]))
+		coordinates = np.meshgrid(range(size[1]), range(size[0]))
 		
 		params, Cover = curve_fit(distribution, coordinates, data.ravel(), p0=guess)
 		

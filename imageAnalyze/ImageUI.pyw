@@ -121,10 +121,10 @@ class ImageUI(wx.Frame):
         aoiBoxSizer.Add(aoiText, flag=wx.ALL, border=5)
 
         hbox11 = wx.BoxSizer(wx.HORIZONTAL)
-        self.AOI1 = wx.TextCtrl(panel, value='300', size=(40,22))
-        self.AOI2 = wx.TextCtrl(panel, value='150', size=(40,22))
-        self.AOI3 = wx.TextCtrl(panel, value='650', size=(40,22))
-        self.AOI4 = wx.TextCtrl(panel, value='500', size=(40,22))
+        self.AOI1 = wx.TextCtrl(panel, value='382', size=(40,22))
+        self.AOI2 = wx.TextCtrl(panel, value='136', size=(40,22))
+        self.AOI3 = wx.TextCtrl(panel, value='686', size=(40,22))
+        self.AOI4 = wx.TextCtrl(panel, value='420', size=(40,22))
         hbox11.Add(self.AOI1, flag=wx.ALL, border=2)
         hbox11.Add(self.AOI2, flag=wx.ALL, border=2)
         hbox11.Add(self.AOI3, flag=wx.ALL, border=2)
@@ -491,7 +491,7 @@ class ImageUI(wx.Frame):
             self.gaussionParams[0] += self.xLeft
             self.gaussionParams[1] += self.yTop
             self.offset = self.gaussionParams[5]
-            tempp = self.atomImage[self.yTop-1:self.yBottom+1,self.xLeft-1:self.xRight+1]
+            tempp = self.atomImage[self.yTop-3:self.yBottom+3,self.xLeft-3:self.xRight+3]
             self.offsetEdge = aoiEdge(tempp)
             
             
@@ -526,7 +526,7 @@ class ImageUI(wx.Frame):
             N_int = 0#atomNumber(self.AOIImage, self.offset)
             N_intEdge = atomNumber(self.AOIImage, self.offsetEdge)
             print "edge"
-            N_gaussianFit = atomNumberGaussianFit(self.gaussionParams[2],self.gaussionParams[3], self.gaussionParams[4])
+            N_gaussianFit = abs(atomNumberGaussianFit(self.gaussionParams[2],self.gaussionParams[3], self.gaussionParams[4]))
             print "fit"
             self.atomNumberInt.SetValue(str("%.0f" % N_intEdge))
             self.atomNumberIntFit.SetValue(str("%.0f" % N_gaussianFit))
