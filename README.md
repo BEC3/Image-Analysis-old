@@ -3,7 +3,7 @@
 <li>open cmd</li>
 <li>cd C:\ExperimentImages\Image-Analysis\imageAnalyze</li>
 <li>python ImageUI.pyw</li>
-<li></li>>Change "Image Folder Path" to "C:\ExperimentImages\"</li>
+<li></li>>Change "Image Folder Path" to "C:\\ExperimentImages\\"</li>
 </ul>
 
 <hr> 
@@ -13,7 +13,6 @@
 <hr>
 <h3>Next to do</h3>
 <ul>
-<li>Error handling</li>
 <li>AOI using mouse to choose area</li>
 <li>Change saved data structure for either fitting use.</li>
 <li>List of previous Image</li>
