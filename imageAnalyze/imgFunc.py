@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 from mpmath import mp
 from polylog import *
 import copy
+import time
+
 
 # list square, for fitting
 def square(list):
@@ -30,7 +32,7 @@ def readData(path):
 #    print "Read ", numBytesRead, " bytes."
     finally:
 	f.close()
-
+    tmp0 = time.time()
 
 #print "Filetype:" + chr(b[0])+chr(b[1])+chr(b[2])
     numBytesPerValue = struct.unpack('h',chr(b[3])+chr(b[4]))[0]
@@ -44,10 +46,12 @@ def readData(path):
         for row in range(rowTotal):
             for col in range(colTotal):
                 imageData[layer][row][col]= struct.unpack('h',chr(b[byteIndex])+chr(b[byteIndex+1]))[0]  
-                byteIndex+=2      
+                byteIndex+=2    
+    tmp1 = time.time()
+     
 ###  Construct the transmittance map, with an np.maximum statement to avoid dividing by zero.
     absorbImg=(imageData[0]-imageData[2])/(np.maximum(imageData[1]-imageData[2],1))
-    
+
     #for row in range(rowTotal):
     #    for col in range(colTotal):
     #        if imageData[0][row][col] > imageData[2][row][col] and imageData[1][row][col] > imageData[2][row][col]:
@@ -61,7 +65,7 @@ def readData(path):
 
 						
      
-
+    
 ###  Replace extremely low transmission pixels with a minimum meaningful transmission. 
     minT = MIN_T
     temp = np.empty((rowTotal,colTotal))	
@@ -69,10 +73,16 @@ def readData(path):
 
     absorbImg = np.maximum(absorbImg,temp)
 
-    for row in range(rowTotal):    
-        for col in range(colTotal):
-            if not imageData[0][row][col] < imageData[2][row][col] and not imageData[1][row][col] > imageData[2][row][col]:
-                absorbImg[row][col] = 1
+
+    # for row in range(rowTotal):    
+    #     for col in range(colTotal):
+    #         if not imageData[0][row][col] < imageData[2][row][col] and not imageData[1][row][col] > imageData[2][row][col]:
+    #             absorbImg[row][col] = 1
+    temp2 = np.where((np.array(imageData[0]) >= np.array(imageData[2])) * (np.array(imageData[1]) <= np.array(imageData[2])))
+    absorbImg = np.array(absorbImg)
+    absorbImg[temp2] = 1
+
+    tmp2 = time.time()
     return absorbImg
 
 
@@ -84,9 +94,9 @@ def atomNumber(Img, offset):
     #return np.sum(np.sum(ImgCopy))  * (pixelToDistance**2)/crossSection
     imgsize = np.shape(Img)
     simplicio = np.sum(np.sum(Img)) 
-    print simplicio
+    print "Ncount = " + str(simplicio)
     sim2 = simplicio -offset * imgsize[0]*imgsize[1] 
-    print sim2
+    print "NormNcount = " + str(sim2)
     return sim2* (pixelToDistance**2)/crossSection
     
     

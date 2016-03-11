@@ -3,11 +3,8 @@ import numpy as np
 from scipy.optimize import curve_fit
 import operator
 from polylog import *
-import signal
+import time
 
-def signal_handler(signum, frame):
-	print "Timed Out!"
-	raise Exception("Timed out!")
 
 
 
@@ -60,52 +57,31 @@ def bosonDistribution(coordinates, x0, y0, a, b, amplitudeC, offset, amplitudeT,
 	return dist.ravel()
 
 def fitData(data, distribution, mode):
-        print mode
-	if mode == "SingleXXX":
-		signal.signal(signal.SIGALRM, signal_handler)
-		signal.alarm(15)   # Ten seconds
-		print "15seconds limits"
-		try:
-			size = np.shape(data)
-			guess = initialGauss(data)
-			
-			if distribution == fermionDistribution:
-				guess.append(1)
-			elif distribution == bosonDistribution:
-				guess.append(1)
-				guess.append(0.1)
-				guess.append(0.1)
-			
-			coordinates = np.meshgrid(range(size[0]), range(size[1]))
-			
-			params, Cover = curve_fit(distribution, coordinates, data.ravel(), p0=guess)
-			signal.alarm(0) 
-			
-			return params
-		except Exception, msg:
-			print "Timed out! This fitting looks much slower than usual. Please check your AOI!" 
+    print mode
+
+    tmp0 =time.time()
+    size = np.shape(data)
+    guess = initialGauss(data)
+    tmp1 =time.time()
+
+    coordinates = np.meshgrid(range(size[1]), range(size[0]))
+
+    if distribution == fermionDistribution:
+    	guess.append(1)
+    elif distribution == bosonDistribution:
+		guess.append(1)
+		guess.append(0.1)
+		guess.append(0.1)
+
+
+    tmp2 =time.time()
+    params, Cover = curve_fit(distribution, coordinates, data.ravel(), p0=guess)
+    tmp3 =time.time()
+    
+    return params
+
 	
-	
-	
-	else:
-                
-		size = np.shape(data)
-		guess = initialGauss(data)
-		print guess
-		if distribution == fermionDistribution:
-			guess.append(1)
-		elif distribution == bosonDistribution:
-			guess.append(1)
-			guess.append(0.1)
-			guess.append(0.1)
-		
-		coordinates = np.meshgrid(range(size[1]), range(size[0]))
-		
-		params, Cover = curve_fit(distribution, coordinates, data.ravel(), p0=guess)
-		
-		
-		return params
-	
+
 
 def f(x):
     # if x == 0:

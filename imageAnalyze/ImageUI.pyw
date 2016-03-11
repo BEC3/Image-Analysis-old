@@ -121,10 +121,10 @@ class ImageUI(wx.Frame):
         aoiBoxSizer.Add(aoiText, flag=wx.ALL, border=5)
 
         hbox11 = wx.BoxSizer(wx.HORIZONTAL)
-        self.AOI1 = wx.TextCtrl(panel, value='382', size=(40,22))
-        self.AOI2 = wx.TextCtrl(panel, value='136', size=(40,22))
-        self.AOI3 = wx.TextCtrl(panel, value='686', size=(40,22))
-        self.AOI4 = wx.TextCtrl(panel, value='420', size=(40,22))
+        self.AOI1 = wx.TextCtrl(panel, value='10', size=(40,22))
+        self.AOI2 = wx.TextCtrl(panel, value='10', size=(40,22))
+        self.AOI3 = wx.TextCtrl(panel, value='900', size=(40,22))
+        self.AOI4 = wx.TextCtrl(panel, value='900', size=(40,22))
         hbox11.Add(self.AOI1, flag=wx.ALL, border=2)
         hbox11.Add(self.AOI2, flag=wx.ALL, border=2)
         hbox11.Add(self.AOI3, flag=wx.ALL, border=2)
@@ -301,18 +301,25 @@ class ImageUI(wx.Frame):
         
         figure = Figure()
         self.axes1 = figure.add_subplot(221)
-        self.canvas1 =  FigureCanvas(panel, -1, figure)
-        imagesBoxSizer.Add(self.canvas1, flag=wx.ALL|wx.EXPAND, border=5)
+        self.axes1.set_title('Original', fontsize=10)
+        for label in (self.axes1.get_xticklabels() + self.axes1.get_yticklabels()):
+            label.set_fontsize(7)
         self.axes2 = figure.add_subplot(222)
-        #self.canvas2 =  FigureCanvas(panel, -1, figure)
-        #imagesBoxSizer.Add(self.canvas2, flag=wx.ALL|wx.EXPAND, border=5)
+        self.axes2.set_title('Gaussian', fontsize=10)
+        for label in (self.axes2.get_xticklabels() + self.axes2.get_yticklabels()):
+            label.set_fontsize(7)
         self.axes3 = figure.add_subplot(223)
-        #self.canvas3 =  FigureCanvas(panel, -1, figure)
-        #imagesBoxSizer.Add(self.canvas3, flag=wx.ALL|wx.EXPAND, border=5)
+        self.axes3.set_title('Fermion/Boson', fontsize=10)
+        for label in (self.axes3.get_xticklabels() + self.axes3.get_yticklabels()):
+            label.set_fontsize(7)
         self.axes4 = figure.add_subplot(224)
-        #self.canvas4 =  FigureCanvas(panel, -1, figure)
-        #imagesBoxSizer.Add(self.canvas4, flag=wx.ALL|wx.EXPAND, border=5)
+        self.axes4.set_title('OD Distribution', fontsize=10)
+        for label in (self.axes4.get_xticklabels() + self.axes4.get_yticklabels()):
+            label.set_fontsize(7)
+        self.canvas =  FigureCanvas(panel, -1, figure)
+        imagesBoxSizer.Add(self.canvas, flag=wx.ALL|wx.EXPAND, border=5)
 
+       
         hbox.Add(imagesBoxSizer, 4, wx.ALL|wx.EXPAND, 10)
 
 ######## multiple shoots functions ############
@@ -417,6 +424,7 @@ class ImageUI(wx.Frame):
         self.gSigma.SetValue('')
         self.atomNumberInt.SetValue('')
         self.gTemperature.SetValue('')
+        self.atomNumberIntFit.SetValue('')
 
 
     def fitImage(self, e):
@@ -425,6 +433,8 @@ class ImageUI(wx.Frame):
         self.benchmark_startTime=time.time()
         print "Begin to fit..."+str(self.benchmark_startTime)
         self.readImage()
+        tmp = time.time()
+        # print "Read Image totally took " + str(tmp - self.benchmark_startTime)
         self.showImg(e)
 
     def readImage(self):
@@ -464,7 +474,7 @@ class ImageUI(wx.Frame):
             self.atomImage = -np.log(absorbImg)
             ### Restrict to the are of interest
             self.AOIImage = self.atomImage[self.yTop:self.yBottom,self.xLeft:self.xRight]
-            print "Read Image"
+            print "Successfully read Image"
 
         except Exception:
             print "Failed to read this image."
@@ -480,19 +490,25 @@ class ImageUI(wx.Frame):
         #print self.gaussionParams
         try:
 
+            N_int = 0#atomNumber(self.AOIImage, self.offset)
+            tempp = self.atomImage[self.yTop-3:self.yBottom+3,self.xLeft-3:self.xRight+3]
+            self.offsetEdge = aoiEdge(tempp)
+            N_intEdge = atomNumber(self.AOIImage, self.offsetEdge)
+           
             print "Start Gaussian Fit..."
 
-           
+            tmp1 = time.time()
+        
             self.gaussionParams = fitData(self.AOIImage, gaussionDistribution, mode)
+            tmp2 = time.time()
+            
             """x0, y0, a, b, amplitude, offset"""
-            print "Gaussian Reuslt: x0, y0, a, b, amplitude, offset"
-            print self.gaussionParams
+
             plotParam = [self.gaussionParams[0], self.gaussionParams[1], self.gaussionParams[2],self.gaussionParams[3]]
             self.gaussionParams[0] += self.xLeft
             self.gaussionParams[1] += self.yTop
             self.offset = self.gaussionParams[5]
-            tempp = self.atomImage[self.yTop-3:self.yBottom+3,self.xLeft-3:self.xRight+3]
-            self.offsetEdge = aoiEdge(tempp)
+
             
             
            
@@ -514,8 +530,11 @@ class ImageUI(wx.Frame):
             # gaussianFitImage = self.gVals[2]*np.exp(-0.5*(((X-self.gVals[0][0])/self.gVals[1][0])**2+((Y-self.gVals[0][1])/self.gVals[1][1])**2))+self.gVals[3]
             size = np.shape(self.AOIImage)
             coordinates = np.meshgrid(x, y)
-            
+            tmp3 = time.time()
+
             gaussianFitImage = gaussionDistribution(coordinates, x0, y0, a, b, amplitude, offset).reshape(self.yBottom-self.yTop,self.xRight-self.xLeft)
+            tmp4 = time.time()
+           
 
             
             # atomImagePlot([atomImage, gaussianFitImage], ['original image', 'gaussianFitImage'] )
@@ -523,20 +542,20 @@ class ImageUI(wx.Frame):
             self.gSigma.SetValue('( %.0f'%abs(a) + ' , %.0f )'%abs(b))
             
             
-            N_int = 0#atomNumber(self.AOIImage, self.offset)
-            N_intEdge = atomNumber(self.AOIImage, self.offsetEdge)
-            print "edge"
+
             N_gaussianFit = abs(atomNumberGaussianFit(self.gaussionParams[2],self.gaussionParams[3], self.gaussionParams[4]))
-            print "fit"
+           
             self.atomNumberInt.SetValue(str("%.0f" % N_intEdge))
             self.atomNumberIntFit.SetValue(str("%.0f" % N_gaussianFit))
-            print "set value"
+           
             self.axes1.imshow(self.AOIImage, cmap='gray_r', aspect=1, vmin=-1, vmax=1)
             self.axes2.imshow(gaussianFitImage, cmap='gray_r', aspect=1, vmin=-1, vmax=1)
-            print "1"
-            for i, line in enumerate(self.axes4.lines):
-                print "2"
-                self.axes4.lines.pop(i)
+           
+           
+            self.axes4.lines=[]
+            # for i, line in enumerate(self.axes4.lines):
+            #     print "2"
+            #     self.axes4.lines.pop(i)
                 # line.remove()
 
             if self.fitMethodGaussian.GetValue():
@@ -563,7 +582,7 @@ class ImageUI(wx.Frame):
             # plotStr = [str("Atom#(offset from fit): %.3fm" % (N_int/1000000))]
             # plotStr.append(str("Atom#(offset from edge): %.3fm" % (N_intEdge/1000000)))
             # plotStr.append(str("Atom#(from gaussfit): %.3fm" % (N_gaussianFit/1000000)))
-            if self.fitMethodFermion.GetValue():
+            elif self.fitMethodFermion.GetValue():
                 print "Start Fermion Fit..."
                 self.fermionParams = fitData(self.AOIImage, fermionDistribution, mode)
                 """x0, y0, a, b, amplitude, offset, q"""
@@ -584,7 +603,7 @@ class ImageUI(wx.Frame):
                 fermionFitImage = fermionDistribution(coordinates, x0, y0, a, b, amplitude, offset, q).reshape(self.xRight-self.xLeft,self.yBottom-self.yTop)
         
                 #atomImagePlot([self.AOIImage, gaussianFitImage, fermionFitImage], ['original', 'gaussian', 'fermion'], plotParam, plotStr)
-                self.axes3.imshow(fermionFitImage, cmap='jet', aspect='auto', vmin=-1, vmax=5)
+                self.axes3.imshow(fermionFitImage, cmap='gray_r', aspect=1, vmin=-1, vmax=1)
                 #self.axes4.imshow(self.AOIImage, cmap='jet', aspect='auto', vmin=-1, vmax=5)
                 ### od distribution
                 
@@ -617,12 +636,29 @@ class ImageUI(wx.Frame):
                 x0, y0, a, b, amplitudeC, offset, amplitudeT, Ca, Cb = self.bosonParams
 
                 print "Create Boson Fit Image..."
-                plotStr.append(str('Condensate Fraction:%0.2f'%(amplitudeC/(amplitudeT+amplitudeC))) )
+                # plotStr.append(str('Condensate Fraction:%0.2f'%(amplitudeC/(amplitudeT+amplitudeC))) )
                 bosonFitImage = bosonDistribution(coordinates, x0, y0, a, b, amplitudeC, offset, amplitudeT, Ca, Cb).reshape(self.xRight-self.xLeft,self.yBottom-self.yTop)
                 #atomImagePlot([self.AOIImage, gaussianFitImage, bosonFitImage], ['original','gaussian','boson'],  plotParam, plotStr)
+                self.axes3.imshow(bosonFitImage, cmap='gray_r', aspect=1, vmin=-1, vmax=1)
 
+                data = [self.AOIImage, gaussianFitImage, bosonFitImage]
+                
+                center = plotParam[0:2]
+                sigma = plotParam[2:4]
+                
+                yy=[]
+                for k in range(3):
+                   l = radioDistribution(data[k], center, sigma)
+                   yy.append(l)
+                xx= range(len(yy[0]))
+                
+                originalLine,  = self.axes4.plot(xx, yy[0], 'g:', label='origianl')
+                gaussianLine,  = self.axes4.plot(xx, yy[1], 'r--', label='gaussian')
+                fitLine,  = self.axes4.plot(xx, yy[2], 'b-', label='fit')
+                
 
-           
+                self.axes4.legend([originalLine, gaussianLine, fitLine], ['original', 'gaussian', 'boson'])
+                
 
 
                 self.fWidth.SetValue('( %.0f'%self.bosonParams[2] + ' , %.0f )'%self.bosonParams[3])
@@ -630,6 +666,7 @@ class ImageUI(wx.Frame):
                 self.tOverTF.SetValue('%0.2f'%(amplitudeC/(amplitudeT+amplitudeC)))       
 
             
+
             ToF = float(self.tof.GetValue()) / 1000
             omegaAxial = float(self.omegaAxial.GetValue()) * np.pi * 2
             omegaRadial = float(self.omegaRadial.GetValue()) * np.pi * 2
@@ -654,7 +691,7 @@ class ImageUI(wx.Frame):
             self.gTemperature.SetValue(str('( %.0f' % (self.gTmp[0]*1E9)) + ' , ' + '%.0f )' % (self.gTmp[1]*1E9))
             # wx.Yield()
 
-            self.canvas1.draw()
+            self.canvas.draw()
             self.Update()
             
             print "Finished Fitting."
@@ -663,7 +700,7 @@ class ImageUI(wx.Frame):
             print 'Sorry. Fitting Failed.'
             
         self.benchmark_endTime=time.time()
-        print  "This took " + str(abs(self.benchmark_startTime-self.benchmark_endTime)) + " time units"
+        print  "This shot took " + str(abs(self.benchmark_startTime-self.benchmark_endTime)) + " seconds"
 
         # atomImagePlot([atomImage, gaussianFitImage,parabolicFitImage], ['original image','gaussian fit','parabolic fit'] )
         
@@ -735,7 +772,7 @@ class ImageUI(wx.Frame):
         f.close()
 
     def saveGaussianResult(self, e):
-        f = open("C:\\ExperimentImages\\Image-Analysis\\gaussian_data.txt", "a")
+        f = open(LOCAL_PATH + "Image-Analysis\\gaussian_data.txt", "a")
         f.writelines(self.filename + '\t' + self.tof.GetValue() + '\t'\
          # + self.omegaAxial.GetValue() + ' , ' + self.omegaRadial.GetValue() + ' , '\
          + str(self.gaussionParams[0]) + '\t' + str(self.gaussionParams[1]) + '\t' \
@@ -747,20 +784,20 @@ class ImageUI(wx.Frame):
 
     def cleanData(self, e):
         if self.fitMethodFermion.GetValue():
-            f = open("C:\\ExperimentImages\\Image-Analysis\\fermion_data.txt", "w")
+            f = open(LOCAL_PATH + "Image-Analysis\\fermion_data.txt", "w")
         elif self.fitMethodBoson.GetValue():
-            f = open("C:\\ExperimentImages\\Image-Analysis\\boson_data.txt", "w")
+            f = open(LOCAL_PATH + "Image-Analysis\\boson_data.txt", "w")
         f.close()
 
     def readData(self, e):
         if self.fitMethodFermion.GetValue():
-            f = open("C:\\ExperimentImages\\Image-Analysis\\fermion_data.txt", "r")
+            f = open(LOCAL_PATH + "Image-Analysis\\fermion_data.txt", "r")
             self.data = f.readlines()
         elif self.fitMethodBoson.GetValue():
-            f = open("C:\\ExperimentImages\\Image-Analysis\\boson_data.txt", "r")
+            f = open(LOCAL_PATH + "Image-Analysis\\boson_data.txt", "r")
             self.data = f.readlines()
         elif self.fitMethodGaussian.GetValue():
-            f = open("C:\\ExperimentImages\\Image-Analysis\\guassian_data.txt", "r")
+            f = open(LOCAL_PATH + "Image-Analysis\\guassian_data.txt", "r")
             self.data = f.readlines()
         # f = open("../data.txt", "r")
 
