@@ -121,10 +121,10 @@ class ImageUI(wx.Frame):
         aoiBoxSizer.Add(aoiText, flag=wx.ALL, border=5)
 
         hbox11 = wx.BoxSizer(wx.HORIZONTAL)
-        self.AOI1 = wx.TextCtrl(panel, value='10', size=(40,22))
-        self.AOI2 = wx.TextCtrl(panel, value='10', size=(40,22))
-        self.AOI3 = wx.TextCtrl(panel, value='900', size=(40,22))
-        self.AOI4 = wx.TextCtrl(panel, value='900', size=(40,22))
+        self.AOI1 = wx.TextCtrl(panel, value='350', size=(40,22))
+        self.AOI2 = wx.TextCtrl(panel, value='100', size=(40,22))
+        self.AOI3 = wx.TextCtrl(panel, value='650', size=(40,22))
+        self.AOI4 = wx.TextCtrl(panel, value='450', size=(40,22))
         hbox11.Add(self.AOI1, flag=wx.ALL, border=2)
         hbox11.Add(self.AOI2, flag=wx.ALL, border=2)
         hbox11.Add(self.AOI3, flag=wx.ALL, border=2)
@@ -551,7 +551,7 @@ class ImageUI(wx.Frame):
             self.axes1.imshow(self.AOIImage, cmap='gray_r', aspect=1, vmin=-1, vmax=1)
             self.axes2.imshow(gaussianFitImage, cmap='gray_r', aspect=1, vmin=-1, vmax=1)
            
-           
+            print "here"
             self.axes4.lines=[]
             # for i, line in enumerate(self.axes4.lines):
             #     print "2"
@@ -600,7 +600,7 @@ class ImageUI(wx.Frame):
                 # plotStr.append(str('T/T_F=%.3f' % tovertf ))
 
                 print "Create Fermion Fit Image..."
-                fermionFitImage = fermionDistribution(coordinates, x0, y0, a, b, amplitude, offset, q).reshape(self.xRight-self.xLeft,self.yBottom-self.yTop)
+                fermionFitImage = fermionDistribution(coordinates, x0, y0, a, b, amplitude, offset, q).reshape(self.yBottom-self.yTop,self.xRight-self.xLeft)
         
                 #atomImagePlot([self.AOIImage, gaussianFitImage, fermionFitImage], ['original', 'gaussian', 'fermion'], plotParam, plotStr)
                 self.axes3.imshow(fermionFitImage, cmap='gray_r', aspect=1, vmin=-1, vmax=1)
@@ -666,7 +666,7 @@ class ImageUI(wx.Frame):
                 self.tOverTF.SetValue('%0.2f'%(amplitudeC/(amplitudeT+amplitudeC)))       
 
             
-
+            print "success"
             ToF = float(self.tof.GetValue()) / 1000
             omegaAxial = float(self.omegaAxial.GetValue()) * np.pi * 2
             omegaRadial = float(self.omegaRadial.GetValue()) * np.pi * 2

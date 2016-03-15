@@ -46,7 +46,7 @@ def fermionDistribution(coordinates, x0, y0, a, b, amplitude, offset, q):
 	numerator = fermi_poly2(tmp.ravel())
 	denumerator = fermi_poly2(q)
 	dist = offset + amplitude * numerator/denumerator
-	return dist
+	return dist.ravel()
 
 
 def bosonDistribution(coordinates, x0, y0, a, b, amplitudeC, offset, amplitudeT, Ca, Cb):
@@ -57,28 +57,28 @@ def bosonDistribution(coordinates, x0, y0, a, b, amplitudeC, offset, amplitudeT,
 	return dist.ravel()
 
 def fitData(data, distribution, mode):
-    print mode
+        print mode
 
-    tmp0 =time.time()
-    size = np.shape(data)
-    guess = initialGauss(data)
-    tmp1 =time.time()
+        tmp0 =time.time()
+        size = np.shape(data)
+        guess = initialGauss(data)
+        tmp1 =time.time()
 
-    coordinates = np.meshgrid(range(size[1]), range(size[0]))
+        coordinates = np.meshgrid(range(size[1]), range(size[0]))
 
-    if distribution == fermionDistribution:
-    	guess.append(1)
-    elif distribution == bosonDistribution:
-		guess.append(1)
-		guess.append(0.1)
-		guess.append(0.1)
+        if distribution == fermionDistribution:
+    	       guess.append(1)
+        elif distribution == bosonDistribution:
+	       guess.append(1)
+	       guess.append(0.1)
+	       guess.append(0.1)
 
 
-    tmp2 =time.time()
-    params, Cover = curve_fit(distribution, coordinates, data.ravel(), p0=guess)
-    tmp3 =time.time()
+        tmp2 =time.time()
+        params, Cover = curve_fit(distribution, coordinates, data.ravel(), p0=guess)
+        tmp3 =time.time()
     
-    return params
+        return params
 
 	
 
