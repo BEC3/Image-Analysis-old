@@ -93,7 +93,7 @@ def fitData(data, distribution, option):
     if distribution == fermionDistribution:
     	print option
     	x0, y0, a, b, amplitude0, offset0, q0 = option
-    	guess = [a, b, amplitude0, offset0, q0]
+    	guess = [a*1.2, b*1.2, amplitude0, offset0, q0]
     	distribution2 = lambda coordinate, fa, fb, amplitude, offset,  q: fermionDistribution(coordinate, x0, y0, fa, fb, amplitude, offset, q)
     print guess
     # elif distribution == bosonDistribution:

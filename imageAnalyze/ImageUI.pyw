@@ -765,7 +765,7 @@ class ImageUI(wx.Frame):
             self.saveGaussianResult(e)
 
     def saveBosonResult(self, e):
-        f = open("C:\\ExperimentImages\\Image-Analysis\\boson_data.txt", "a")
+        f = open(LOCAL_PATH + "Image-Analysis\\boson_data.txt", "a")
         f.writelines(self.filename + '\t' + self.tof.GetValue() + '\t'\
          # + self.omegaAxial.GetValue() + ' , ' + self.omegaRadial.GetValue() + ' , '\
          # + str(self.gVals[0][0]) + ' , ' + str(self.gVals[0][1]) + ' , ' \
@@ -777,14 +777,14 @@ class ImageUI(wx.Frame):
         f.close()
 
     def saveFermionResult(self, e):
-        f = open("C:\\ExperimentImages\\Image-Analysis\\fermion_data.txt", "a")
+        f = open(LOCAL_PATH + "Image-Analysis\\fermion_data.txt", "a")
         
         f.writelines(self.filename + '\t' + self.tof.GetValue() + '\t'\
          # + self.omegaAxial.GetValue() + ' , ' + self.omegaRadial.GetValue() + ' , '\
          + str(self.gaussionParams[0]) + '\t' + str(self.gaussionParams[1]) + '\t' \
          + self.atomNumberInt.GetValue() + '\t' \
          + str(self.fermionParams[2]) + '\t' + str(self.fermionParams[3]) + '\t' \
-         + str(self.fermionParams[6]) + '\n') 
+         + str(self.fermionParams[4]) + '\n') 
         
         f.close()
 
