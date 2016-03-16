@@ -456,7 +456,6 @@ def dataFit(atom, arr1, arr2, arr3):
     return [Tempx, Tempy, wx, wy]
 
 
-
 # temperature divided by fermionic temperature
 def TOverTF(q):
     return (6*fermi_poly3(q))**(-1./3.)

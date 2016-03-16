@@ -84,7 +84,7 @@ class ImageUI(wx.Frame):
         fileBoxSizer = wx.StaticBoxSizer(fileBox, wx.VERTICAL)
         pathText = wx.StaticText(panel,label='Image Folder Path')
         fileBoxSizer.Add(pathText, flag=wx.ALL, border=5)
-        self.imageFolderPath = wx.TextCtrl(panel, value=LOCAL_PATH)
+        self.imageFolderPath = wx.TextCtrl(panel, value="LOCAL_PATH")
         fileBoxSizer.Add(self.imageFolderPath, flag=wx.ALL|wx.EXPAND, border=5)
         nameText = wx.StaticText(panel, label='Image File Name')
         fileBoxSizer.Add(nameText, flag=wx.ALL, border=5)
@@ -235,13 +235,16 @@ class ImageUI(wx.Frame):
         hbox129 = wx.BoxSizer(wx.HORIZONTAL)
         self.tOverTFLabel = wx.StaticText(panel, label='T/T_F')
         self.tOverTF = wx.TextCtrl(panel, value='', style=wx.TE_READONLY)
-        
+        # self.tOverTFLabelguess = wx.StaticText(panel, label='T/T_F from guess')
+        # self.tOverTFguess = wx.TextCtrl(panel, value='', style=wx.TE_READONLY)
         hbox127.Add(self.fText1, flag=wx.LEFT | wx.TOP, border=5)
         hbox127.Add(self.fWidth, flag=wx.LEFT | wx.TOP, border=5)
         hbox128.Add(self.fText2, flag=wx.LEFT | wx.TOP, border=5)
         hbox128.Add(self.fq, flag=wx.LEFT | wx.TOP, border=5)
         hbox129.Add(self.tOverTFLabel, flag=wx.LEFT | wx.TOP, border=5)
         hbox129.Add(self.tOverTF, flag=wx.LEFT | wx.TOP, border=5)
+        # hbox129.Add(self.tOverTFLabelguess, flag=wx.LEFT | wx.TOP, border=5)
+        # hbox129.Add(self.tOverTFguess, flag=wx.LEFT | wx.TOP, border=5)
 
         fermionResultBox.Add(hbox127, flag=wx.LEFT | wx.TOP, border=5)
         fermionResultBox.Add(hbox128, flag=wx.LEFT | wx.TOP, border=5)
@@ -431,7 +434,7 @@ class ImageUI(wx.Frame):
         
         
         self.benchmark_startTime=time.time()
-        print "Begin to fit..."+str(self.benchmark_startTime)
+        print "Begin to fit..."#+str(self.benchmark_startTime)
         self.readImage()
         tmp = time.time()
         # print "Read Image totally took " + str(tmp - self.benchmark_startTime)
@@ -498,10 +501,10 @@ class ImageUI(wx.Frame):
             print "Start Gaussian Fit..."
 
             tmp1 = time.time()
-        
-            self.gaussionParams = fitData(self.AOIImage, gaussionDistribution, mode)
+            option = None
+            self.gaussionParams = fitData(self.AOIImage, gaussionDistribution, option)
             tmp2 = time.time()
-            
+            print "here"
             """x0, y0, a, b, amplitude, offset"""
 
             plotParam = [self.gaussionParams[0], self.gaussionParams[1], self.gaussionParams[2],self.gaussionParams[3]]
@@ -551,7 +554,6 @@ class ImageUI(wx.Frame):
             self.axes1.imshow(self.AOIImage, cmap='gray_r', aspect=1, vmin=-1, vmax=1)
             self.axes2.imshow(gaussianFitImage, cmap='gray_r', aspect=1, vmin=-1, vmax=1)
            
-            print "here"
             self.axes4.lines=[]
             # for i, line in enumerate(self.axes4.lines):
             #     print "2"
@@ -583,23 +585,38 @@ class ImageUI(wx.Frame):
             # plotStr.append(str("Atom#(offset from edge): %.3fm" % (N_intEdge/1000000)))
             # plotStr.append(str("Atom#(from gaussfit): %.3fm" % (N_gaussianFit/1000000)))
             elif self.fitMethodFermion.GetValue():
-                print "Start Fermion Fit..."
-                self.fermionParams = fitData(self.AOIImage, fermionDistribution, mode)
-                """x0, y0, a, b, amplitude, offset, q"""
+                # print "test sensitiy to initial guess"
+                # for i in np.linspace(-5, 5, 20):
+
+                # print "Start Fermion Fit..."
+                ga = self.gaussionParams[2] * pixelToDistance
+                gb = self.gaussionParams[3] * pixelToDistance
+                tof = float(self.tof.GetValue()) / 1000
+                # print ga
                 
+                # option = qguess(tof, ga, gb)
+                # print "Initial Guess of T/TF is" + str(TOverTF(option))
+                option = [x0, y0, a, b, amplitude, offset, 2]
+                self.fermionParams = fitData(self.AOIImage, fermionDistribution, option)
+                """x0, y0, a, b, amplitude, offset, q"""
+                # print i
+                
+                print self.fermionParams
+                # self.fermionParams[0] += self.xLeft
+                # self.fermionParams[1] += self.yTop
             
-                self.fermionParams[0] += self.xLeft
-                self.fermionParams[1] += self.yTop
-            
-                x0, y0, a, b, amplitude, offset, q = self.fermionParams
-                self.foffset = self.fermionParams[5]
-                self.fWidth.SetValue('( %.0f'%(self.fermionParams[2]) + ' , %.0f )'%(self.fermionParams[3]))
-                self.fq.SetValue('%.2f'%(self.fermionParams[6]))
-                tovertf = TOverTF(self.fermionParams[6])
+                # x0, y0, a, b, amplitude, offset, q = self.fermionParams
+                a, b, amplitude, offset, q = self.fermionParams
+                # print q    
+                # self.foffset = self.fermionParams[5]
+                self.fWidth.SetValue('( %.0f'%(self.fermionParams[0]) + ' , %.0f )'%(self.fermionParams[1]))
+                self.fq.SetValue('%.2f'%(self.fermionParams[4]))
+                tovertf = TOverTF(self.fermionParams[4])
                 self.tOverTF.SetValue(str('%.3f' % tovertf ))
+                # self.tOverTFguess.SetValue(str('%.3f' % option))
                 # plotStr.append(str('T/T_F=%.3f' % tovertf ))
 
-                print "Create Fermion Fit Image..."
+                # print "Create Fermion Fit Image..."
                 fermionFitImage = fermionDistribution(coordinates, x0, y0, a, b, amplitude, offset, q).reshape(self.yBottom-self.yTop,self.xRight-self.xLeft)
         
                 #atomImagePlot([self.AOIImage, gaussianFitImage, fermionFitImage], ['original', 'gaussian', 'fermion'], plotParam, plotStr)
@@ -629,7 +646,7 @@ class ImageUI(wx.Frame):
                 
             elif self.fitMethodBoson.GetValue():
                 print "Start Boson Fit..."
-                self.bosonParams = fitData(self.AOIImage, bosonDistribution, mode)
+                self.bosonParams = fitData(self.AOIImage, bosonDistribution, option)
                 print self.bosonParams
                 self.bosonParams[0] += self.xLeft
                 self.bosonParams[1] += self.yTop
@@ -678,9 +695,9 @@ class ImageUI(wx.Frame):
                 atom = "Li"
             
             if self.fitMethodFermion.GetValue():
-                Rx = self.fermionParams[2] * pixelToDistance
-                Ry = self.fermionParams[3] * pixelToDistance
-                self.q = self.fermionParams[6]
+                Rx = self.fermionParams[0] * pixelToDistance
+                Ry = self.fermionParams[1] * pixelToDistance
+                self.q = self.fermionParams[4]
 
             
             gSigmaX = self.gaussionParams[2] * pixelToDistance
@@ -698,7 +715,7 @@ class ImageUI(wx.Frame):
         except Exception:
 
             print 'Sorry. Fitting Failed.'
-            
+        
         self.benchmark_endTime=time.time()
         print  "This shot took " + str(abs(self.benchmark_startTime-self.benchmark_endTime)) + " seconds"
 

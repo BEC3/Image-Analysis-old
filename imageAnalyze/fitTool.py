@@ -4,6 +4,7 @@ from scipy.optimize import curve_fit
 import operator
 from polylog import *
 import time
+from constant import *
 
 
 
@@ -34,6 +35,23 @@ def initialGauss(data):
 
 	return [x0, y0, a, b, amplitude, offset]
 
+def qguess(tof, a, b):
+	vx = a/tof
+	vy = b/tof
+	
+	m = mLi
+	T = m/kB * (vx**2+vy**2)/2
+	beta = 1/(kB*T)
+	
+	n = 10**(13) * 10**6
+	mu = hbar**2/(2*m) * (3 * np.pi**2)**(2./3.) * n** (2./3.)
+	
+	q = beta * mu
+	
+	return q
+
+
+
 def gaussionDistribution(coordinates, x0, y0, a, b, amplitude, offset):
 	"""gaussionParams = ((x0, y0, a, b, amplitude, offset)) """
 
@@ -42,6 +60,7 @@ def gaussionDistribution(coordinates, x0, y0, a, b, amplitude, offset):
 
 
 def fermionDistribution(coordinates, x0, y0, a, b, amplitude, offset, q):
+	# print x0, y0, a, b, amplitude, offset, q
 	tmp = q - ((coordinates[0]-x0)**2/a**2 + (coordinates[1]-y0)**2/b**2)* f(np.exp(q))
 	numerator = fermi_poly2(tmp.ravel())
 	denumerator = fermi_poly2(q)
@@ -56,29 +75,38 @@ def bosonDistribution(coordinates, x0, y0, a, b, amplitudeC, offset, amplitudeT,
 	dist = thermalPart + condensatePart + offset
 	return dist.ravel()
 
-def fitData(data, distribution, mode):
-        print mode
+def fitData(data, distribution, option):
 
-        tmp0 =time.time()
-        size = np.shape(data)
-        guess = initialGauss(data)
-        tmp1 =time.time()
-
-        coordinates = np.meshgrid(range(size[1]), range(size[0]))
-
-        if distribution == fermionDistribution:
-    	       guess.append(1)
-        elif distribution == bosonDistribution:
-	       guess.append(1)
-	       guess.append(0.1)
-	       guess.append(0.1)
-
-
-        tmp2 =time.time()
-        params, Cover = curve_fit(distribution, coordinates, data.ravel(), p0=guess)
-        tmp3 =time.time()
+    tmp0 =time.time()
+    size = np.shape(data)
     
-        return params
+    
+    tmp1 =time.time()
+    if distribution == gaussionDistribution:
+    	guess = initialGauss(data)
+    	distribution2 = gaussionDistribution
+    	
+    coordinates = np.meshgrid(range(size[1]), range(size[0]))
+    print "1"
+
+
+    if distribution == fermionDistribution:
+    	print option
+    	x0, y0, a, b, amplitude0, offset0, q0 = option
+    	guess = [a, b, amplitude0, offset0, q0]
+    	distribution2 = lambda coordinate, fa, fb, amplitude, offset,  q: fermionDistribution(coordinate, x0, y0, fa, fb, amplitude, offset, q)
+    print guess
+    # elif distribution == bosonDistribution:
+    #    	guess.append(1)
+    #    	guess.append(0.1)
+    #    	guess.append(0.1)
+
+
+    tmp2 =time.time()
+    params, Cover = curve_fit(distribution2, coordinates, data.ravel(), p0=guess)
+    tmp3 =time.time()
+
+    return params
 
 	
 
